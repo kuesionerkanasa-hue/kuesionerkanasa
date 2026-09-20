@@ -667,7 +667,7 @@ details.acc>div{padding:16px}
    Skrip SQL lengkap: Admin → Pengaturan → Panduan Deploy.
    ============================================================ */
 const CONFIG = {
-  SUPABASE_URL: "https://tbadjfyrjkbmtajmyyc.supabase.co", // Project URL Supabase
+  SUPABASE_URL: "https://tbadjf4rjkbmtajmyyc.supabase.co", // Project URL Supabase
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoidGJhZGpmNHJqa2JtdGFqbXl5YyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg5ODY0MTAxLCJleHAiOjIxMDU0NDAxMDZ9.tfOF-wpd0R2ekVvqzIrntkYyeOvi7oZtsljoXdzV4Lg", // anon / publishable key
   APP_NAME: "Kuesioner Keadilan Kebijakan Koperasi",
   INSTITUSI: "Universitas Palangka Raya – FISIP – Ilmu Administrasi Negara",
@@ -685,10 +685,34 @@ const CONFIG = {
 const URL_SIAP = /^https:\/\/.+\.supabase\.co\/?$/.test(String(CONFIG.SUPABASE_URL||"").trim());
 const KEY_SIAP = String(CONFIG.SUPABASE_ANON_KEY||"").trim().length > 30
               && !/^ISI_/.test(String(CONFIG.SUPABASE_ANON_KEY||"").trim());
-const SUPA_SIAP = URL_SIAP && KEY_SIAP;
+
+/* Validasi tambahan: pastikan project reference pada SUPABASE_URL memang
+   sama dengan project reference yang tertanam di dalam SUPABASE_ANON_KEY
+   (klaim "ref" pada payload JWT). Jika berbeda, URL pasti salah project
+   (mis. typo satu karakter) dan permintaan akan gagal dengan
+   ERR_NAME_NOT_RESOLVED — lebih baik dideteksi di sini dengan pesan
+   yang jelas daripada menyamar sebagai "jaringan terganggu". */
+function refDariJwt(jwt){
+  try{
+    const bagian = String(jwt||"").split(".");
+    if(bagian.length < 2) return null;
+    let s = bagian[1].replace(/-/g,"+").replace(/_/g,"/");
+    s += "=".repeat((4 - s.length % 4) % 4);
+    const payload = JSON.parse(atob(s));
+    return (payload && payload.ref) || null;
+  }catch(e){ return null; }
+}
+let REF_COCOK = true;
+if(URL_SIAP && KEY_SIAP){
+  const refUrl = (String(CONFIG.SUPABASE_URL).trim().match(/^https:\/\/([^.]+)\.supabase\.co\/?$/i)||[])[1] || null;
+  const refKey = refDariJwt(CONFIG.SUPABASE_ANON_KEY);
+  if(refUrl && refKey && refUrl !== refKey) REF_COCOK = false;
+}
+const SUPA_SIAP = URL_SIAP && KEY_SIAP && REF_COCOK;
 const PESAN_CONFIG_KURANG = !URL_SIAP
   ? "SUPABASE_URL belum dikonfigurasi. Isi Project URL Supabase pada blok CONFIG di index.html."
-  : (!KEY_SIAP ? "SUPABASE_ANON_KEY belum dikonfigurasi." : "");
+  : (!KEY_SIAP ? "SUPABASE_ANON_KEY belum dikonfigurasi."
+  : (!REF_COCOK ? "SUPABASE_URL dan SUPABASE_ANON_KEY menunjuk ke project Supabase yang berbeda. Periksa kembali Project URL pada blok CONFIG." : ""));
 
 /* ============================================================
    MODUL 2 — UTILITAS
@@ -1051,6 +1075,10 @@ const DB = {
         global:{ headers:{ "x-respondent-code": Ident.kode } },
         realtime:{ params:{ eventsPerSecond:4 } } });
     this.siap = true;
+    /* Log aman untuk debugging: TIDAK PERNAH mencetak anon key, password,
+       access_token, atau refresh_token — hanya URL (publik) dan status boolean. */
+    console.info("[Supabase] URL:", CONFIG.SUPABASE_URL);
+    console.info("[Supabase] Client initialized:", !!this.client);
     return true;
   },
   /* sesi anonim membuat auth.uid() tersedia untuk RLS responden.
