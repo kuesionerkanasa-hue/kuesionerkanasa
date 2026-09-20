@@ -669,7 +669,7 @@ details.acc>div{padding:16px}
 const CONFIG = {
   SUPABASE_URL: "https://tbadjfyrjbkhmtajmyyc.supabase.co", // Project URL Supabase
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYWRqZnlyamJraG10YWpteXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NjQxMDEsImV4cCI6MjEwNTQ0MDEwMX0.tfOF-wpd0R2ekVvqzIrntkYyeOvi7oZtsljoXdzV4Lg", // anon / publishable key (project tbadjfyrjbkhmtajmyyc)
-  ADMIN_EMAIL: "", // Isi dengan email admin yang SUDAH terdaftar di Supabase Authentication → Users. Login admin hanya meminta kata sandi; email ini dipakai secara internal.
+  ADMIN_EMAIL: "kanasaminecraft@gmail.com", // Email admin yang SUDAH terdaftar di Supabase Authentication → Users. Login admin hanya meminta kata sandi; email ini dipakai secara internal.
   APP_NAME: "Kuesioner Keadilan Kebijakan Koperasi",
   INSTITUSI: "Universitas Palangka Raya – FISIP – Ilmu Administrasi Negara",
 
@@ -1456,9 +1456,13 @@ const Auth = {
     if(!s || s.user.is_anonymous) return null;
     return s;
   },
-  async cekPeran(){
+  /* Diberi id user yang sedang login (dari sesi/hasil signInWithPassword) agar
+     pemeriksaan admin_users benar-benar mengecek AKUN YANG LOGIN, bukan baris
+     admin lain yang kebetulan ikut terlihat setelah RLS mengizinkan is_admin(). */
+  async cekPeran(userId){
+    if(!userId) return null;
     const baris = await supabaseRequest("cek-admin", c=>c.from("admin_users")
-      .select("id,email,role").limit(1).maybeSingle(), {ulang:1});
+      .select("id,email,role").eq("id", userId).maybeSingle(), {ulang:1});
     return baris || null;
   },
   /* dipanggil saat membuka panel admin */
@@ -1466,7 +1470,7 @@ const Auth = {
     const s = await this.sesiAktif();
     if(!s){ this.bersihkan(); return null; }
     let peran=null;
-    try{ peran = await this.cekPeran(); }
+    try{ peran = await this.cekPeran(s.user.id); }
     catch(e){ this.bersihkan(); throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali."); }
     if(!peran){ await DB.client.auth.signOut(); this.bersihkan();
       throw new Error("Akun ini belum terdaftar sebagai admin."); }
@@ -1498,7 +1502,7 @@ const Auth = {
       throw new Error(pesanRamah(r.error));
     }
     let peran=null;
-    try{ peran = await this.cekPeran(); }
+    try{ peran = await this.cekPeran(r.data.user.id); }
     catch(e){ await DB.client.auth.signOut(); throw e; }
     if(!peran){ await DB.client.auth.signOut();
       throw new Error("Akun berhasil login, tetapi tidak memiliki akses admin."); }
