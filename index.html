@@ -1441,13 +1441,18 @@ const Auth = {
     if(!s || s.user.is_anonymous) return null;
     return s;
   },
-  /* Diberi email user yang sedang login (dari sesi/getUser()) agar pemeriksaan
-     admin_users benar-benar mengecek AKUN YANG LOGIN, bukan baris admin lain
-     yang kebetulan ikut terlihat setelah RLS mengizinkan is_admin(). */
-  async cekPeran(email){
-    if(!email) return null;
-    const baris = await supabaseRequest("cek-admin", c=>c.from("admin_users")
-      .select("id,email,role").eq("email", email).maybeSingle(), {ulang:1});
+  /* Diberi userId (auth.users.id) user yang sedang login agar pemeriksaan
+     admin_users benar-benar mengecek AKUN YANG LOGIN lewat relasi
+     admin_users.id = auth.users.id, bukan baris admin lain yang kebetulan
+     ikut terlihat. Email hanya dipakai sebagai fallback bila diperlukan. */
+  async cekPeran(userId, emailFallback){
+    if(!userId) return null;
+    let baris = await supabaseRequest("cek-admin", c=>c.from("admin_users")
+      .select("id,email,role").eq("id", userId).maybeSingle(), {ulang:1});
+    if(!baris && emailFallback){
+      baris = await supabaseRequest("cek-admin-email", c=>c.from("admin_users")
+        .select("id,email,role").eq("email", emailFallback).maybeSingle(), {ulang:1});
+    }
     return baris || null;
   },
   /* dipanggil saat membuka panel admin */
@@ -1455,10 +1460,14 @@ const Auth = {
     const s = await this.sesiAktif();
     if(!s){ this.bersihkan(); return null; }
     let peran=null;
-    try{ peran = await this.cekPeran(s.user.email); }
+    try{ peran = await this.cekPeran(s.user.id, s.user.email); }
     catch(e){ this.bersihkan(); throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali."); }
     if(!peran){ await DB.client.auth.signOut(); this.bersihkan();
       throw new Error("Akun ini belum terdaftar sebagai admin."); }
+    if(!["admin","owner"].includes(String(peran.role||"").toLowerCase())){
+      await DB.client.auth.signOut(); this.bersihkan();
+      throw new Error("Akun ini terdaftar, tetapi role akun tidak memiliki akses admin.");
+    }
     this.sesi=s; this.user=s.user; this.peran=peran;
     return s;
   },
@@ -1490,17 +1499,41 @@ const Auth = {
       throw new Error(pesanAuth(e));
     }
     if(r.error) throw new Error(pesanAuth(r.error));
+
+    const session = r.data.session;
+    const authUser = r.data.user;
+    if(!session || !authUser){
+      throw new Error("Login berhasil tetapi session tidak ditemukan.");
+    }
+
+    /* Ambil ulang identitas dari Supabase (bukan hanya percaya hasil
+       signInWithPassword mentah) sebagai sumber kebenaran user.id/email. */
     const { data:userData, error:errUser } = await DB.client.auth.getUser();
     if(errUser || !userData || !userData.user){
       await DB.client.auth.signOut();
       throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali.");
     }
+    const user = userData.user;
+
+    console.info("[Admin Auth] Authenticated:", !!user);
+
     let peran=null;
-    try{ peran = await this.cekPeran(userData.user.email); }
+    try{ peran = await this.cekPeran(user.id, user.email); }
     catch(e){ await DB.client.auth.signOut(); throw e; }
-    if(!peran){ await DB.client.auth.signOut();
-      throw new Error("Akun berhasil login, tetapi tidak memiliki akses admin."); }
-    this.sesi=r.data.session; this.user=userData.user; this.peran=peran;
+
+    console.info("[Admin Auth] Admin record found:", !!peran);
+    console.info("[Admin Auth] Role:", (peran && peran.role) || null);
+
+    if(!peran){
+      await DB.client.auth.signOut();
+      throw new Error("Login berhasil, tetapi akun belum terdaftar sebagai admin.");
+    }
+    if(!["admin","owner"].includes(String(peran.role||"").toLowerCase())){
+      await DB.client.auth.signOut();
+      throw new Error("Login berhasil, tetapi role akun tidak memiliki akses admin.");
+    }
+
+    this.sesi=session; this.user=user; this.peran=peran;
     return true;
   },
   async keluar(){
