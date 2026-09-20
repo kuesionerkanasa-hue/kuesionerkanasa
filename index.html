@@ -667,8 +667,9 @@ details.acc>div{padding:16px}
    Skrip SQL lengkap: Admin → Pengaturan → Panduan Deploy.
    ============================================================ */
 const CONFIG = {
-  SUPABASE_URL: "https://tbadjf4rjkbmtajmyyc.supabase.co", // Project URL Supabase
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoidGJhZGpmNHJqa2JtdGFqbXl5YyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg5ODY0MTAxLCJleHAiOjIxMDU0NDAxMDZ9.tfOF-wpd0R2ekVvqzIrntkYyeOvi7oZtsljoXdzV4Lg", // anon / publishable key
+  SUPABASE_URL: "https://tbadjfyrjbkhmtajmyyc.supabase.co", // Project URL Supabase
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoidGJhZGpmNHJqa2JtdGFqbXl5YyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg5ODY0MTAxLCJleHAiOjIxMDU0NDAxMDZ9.tfOF-wpd0R2ekVvqzIrntkYyeOvi7oZtsljoXdzV4Lg", // anon / publishable key — PERIKSA: harus milik project tbadjfyrjbkhmtajmyyc, salin ulang dari Supabase → Project Settings → API bila login masih gagal
+  ADMIN_EMAIL: "", // Isi dengan email admin yang SUDAH terdaftar di Supabase Authentication → Users. Login admin hanya meminta kata sandi; email ini dipakai secara internal.
   APP_NAME: "Kuesioner Keadilan Kebijakan Koperasi",
   INSTITUSI: "Universitas Palangka Raya – FISIP – Ilmu Administrasi Negara",
 
@@ -972,7 +973,7 @@ const STRUKTUR_DEFAULT = {
      .data.*_lainnya                 →   survey_answers.answer_text (baris induk)
    localStorage "kuesioner_data"     → survey_responses + relasinya
    localStorage "kuesioner_struktur" → app_settings.setting_value ('struktur')
-   CONFIG.LOCAL_ADMIN_PASSWORD       → Supabase Auth + tabel admin_users
+   CONFIG.ADMIN_EMAIL + kata sandi input → Supabase Auth + tabel admin_users
    konstanta BAGIAN / P_TEKS         → survey_sections / survey_questions (seed)
    localStorage "tema_situs"         → TETAP lokal (preferensi tampilan, bukan data)
    localStorage "antrian_sinkron"    → TETAP lokal (antrean offline sementara)
@@ -1466,21 +1467,41 @@ const Auth = {
     if(!s){ this.bersihkan(); return null; }
     let peran=null;
     try{ peran = await this.cekPeran(); }
-    catch(e){ this.bersihkan(); throw e; }
+    catch(e){ this.bersihkan(); throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali."); }
     if(!peran){ await DB.client.auth.signOut(); this.bersihkan();
       throw new Error("Akun ini belum terdaftar sebagai admin."); }
     this.sesi=s; this.user=s.user; this.peran=peran;
     return s;
   },
-  async masuk(email, sandi){
+  /* Login hanya meminta kata sandi dari pengguna; email admin diambil dari
+     CONFIG.ADMIN_EMAIL karena Supabase Auth tetap membutuhkan email+password
+     secara internal walau UI tidak lagi menampilkan kolom email. */
+  async masuk(sandi){
     if(!DB.siap) throw new Error("Database belum dikonfigurasi.");
-    const r = await DB.client.auth.signInWithPassword({ email:String(email||"").trim(), password:sandi||"" });
-    if(r.error) throw new Error(pesanRamah(r.error));
+    const email = String(CONFIG.ADMIN_EMAIL||"").trim();
+    if(!email) throw new Error("Konfigurasi email admin belum diatur.");
+    let r;
+    try{
+      r = await DB.client.auth.signInWithPassword({ email, password:sandi||"" });
+    }catch(e){
+      // Gagal sebelum sempat dibalas server (DNS/offline/timeout) → jaringan.
+      throw new Error(/Failed to fetch|NetworkError|Load failed|Batas waktu/i.test(String((e&&e.message)||""))
+        ? "Tidak dapat terhubung ke Supabase. Periksa koneksi internet."
+        : pesanRamah(e));
+    }
+    if(r.error){
+      const m = String(r.error.message||"");
+      if(/Failed to fetch|NetworkError|Load failed/i.test(m))
+        throw new Error("Tidak dapat terhubung ke Supabase. Periksa koneksi internet.");
+      if(/Invalid login credentials/i.test(m))
+        throw new Error("Kata sandi admin salah.");
+      throw new Error(pesanRamah(r.error));
+    }
     let peran=null;
     try{ peran = await this.cekPeran(); }
     catch(e){ await DB.client.auth.signOut(); throw e; }
     if(!peran){ await DB.client.auth.signOut();
-      throw new Error("Akun ini belum terdaftar sebagai admin. Tambahkan lewat fungsi daftarkan_admin() di SQL Editor."); }
+      throw new Error("Akun berhasil login, tetapi tidak memiliki akses admin."); }
     this.sesi=r.data.session; this.user=r.data.user; this.peran=peran;
     return true;
   },
@@ -1550,8 +1571,8 @@ const Store = {
   get token(){ return Auth.sesi; },
   init(){ return DB.siap ? "cloud" : "local"; },
 
-  async login(email, sandi){
-    if(DB.siap) return Auth.masuk(email, sandi);
+  async login(sandi){
+    if(DB.siap) return Auth.masuk(sandi);
     /* MODE PRATINJAU: Supabase belum dikonfigurasi, tidak ada data yang perlu dilindungi. */
     if(String(sandi||"") !== "pratinjau") throw new Error("Kata sandi pratinjau belum cocok.");
     Auth.sesi = { pratinjau:true }; Auth.peran = { email:"(pratinjau lokal)", role:"admin" };
@@ -2640,12 +2661,10 @@ const Admin = {
         <div style="font-size:2.6rem">🔮</div>
         <h2>Ruang admin</h2>
         <p style="color:var(--tinta-3);font-size:.92rem">${cloud
-          ? "Masuk dengan akun admin Supabase untuk membuka panel analisis data penelitian."
+          ? "Masukkan kata sandi admin untuk membuka panel analisis data penelitian."
           : esc(PESAN_CONFIG_KURANG||"Supabase belum dikonfigurasi.") + " Panel dapat dibuka dalam mode pratinjau lokal."}</p>
         <div style="text-align:left;margin-top:12px">
-          ${cloud?`<label class="fl" for="em">Email admin</label>
-          <input type="email" id="em" autocomplete="username" placeholder="nama@email.com" value="${esc(LS.get("admin_email_terakhir","")||"")}">`:""}
-          <label class="fl" for="pw" style="margin-top:10px">Kata sandi</label>
+          <label class="fl" for="pw">Kata sandi</label>
           <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••">
           <div id="lerr"></div>
         </div>
@@ -2654,16 +2673,14 @@ const Admin = {
           ${Tema.tombol()}<a href="#/" style="font-size:.88rem">\u2190 Kembali ke halaman utama</a></div>
       </div>
       ${cloud
-        ? `<p class="note" style="margin-top:14px">Akun admin dibuat di <strong>Supabase → Authentication → Users</strong>, lalu didaftarkan perannya dengan menjalankan <code>select public.daftarkan_admin('email@anda.com');</code> pada SQL Editor. Tidak ada kata sandi yang tersimpan di berkas <code>index.html</code>.</p>`
-        : `<p class="note" style="margin-top:14px">Mode pratinjau: isi <code>SUPABASE_URL</code> dan <code>SUPABASE_ANON_KEY</code> pada blok <strong>CONFIG</strong> di berkas <code>index.html</code> agar data tersimpan permanen dan dapat dibuka lintas perangkat. Kata sandi pratinjau: <code>pratinjau</code>.</p>`}
+        ? `<p class="note" style="margin-top:14px">Akun admin dibuat di <strong>Supabase → Authentication → Users</strong>, lalu didaftarkan perannya dengan menjalankan <code>select public.daftarkan_admin('email@anda.com');</code> pada SQL Editor. Email admin itu harus sama dengan <code>CONFIG.ADMIN_EMAIL</code> di <code>index.html</code>. Tidak ada kata sandi yang tersimpan di berkas ini.</p>`
+        : `<p class="note" style="margin-top:14px">Mode pratinjau: isi <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, dan <code>ADMIN_EMAIL</code> pada blok <strong>CONFIG</strong> di berkas <code>index.html</code> agar data tersimpan permanen dan dapat dibuka lintas perangkat. Kata sandi pratinjau: <code>pratinjau</code>.</p>`}
     </div>`;
     const go=async()=>{
       if(Date.now()<this.lock){ $("#lerr").innerHTML=`<div class="err">✿ Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil((this.lock-Date.now())/1000)} detik.</div>`; return; }
       const b=$("#masuk"); b.disabled=true; b.innerHTML=`<span class="spin"></span>`;
-      const em=$("#em")?$("#em").value:"";
       try{
-        await Store.login(em,$("#pw").value);
-        if(em) LS.set("admin_email_terakhir",em);
+        await Store.login($("#pw").value);
         this.gagal=0; this.entry(el); }
       catch(err){ this.gagal++; b.disabled=false; b.textContent="Masuk";
         if(this.gagal>=5){ this.lock=Date.now()+60000; this.gagal=0;
@@ -2674,8 +2691,7 @@ const Admin = {
     Tema.pasang(el);
     $("#masuk").onclick=go;
     $("#pw").onkeydown=e=>{ if(e.key==="Enter") go(); };
-    if($("#em")) $("#em").onkeydown=e=>{ if(e.key==="Enter") $("#pw").focus(); };
-    ($("#em")||$("#pw")).focus();
+    $("#pw").focus();
   },
 
   shell(el){
