@@ -668,7 +668,7 @@ details.acc>div{padding:16px}
    ============================================================ */
 const CONFIG = {
   SUPABASE_URL: "https://tbadjfyrjbkhmtajmyyc.supabase.co", // Project URL Supabase
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYWRqZnlyamJraG10YWpteXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NjQxMDEsImV4cCI6MjEwNTQ0MDEwMX0.tfOF-wpd0R2ekVvqzIrntkYyeOvi7oZtsljoXdzV4Lg", // anon / publishable key (project tbadjfyrjbkhmtajmyyc)
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e1ZNzHgOLfE1x74M1xREkQ_ASaExnt-", // Supabase Publishable Key (bukan legacy JWT anon key)
   ADMIN_EMAIL: "kanasaminecraft@gmail.com", // Email admin yang SUDAH terdaftar di Supabase Authentication → Users. Login admin hanya meminta kata sandi; email ini dipakai secara internal.
   APP_NAME: "Kuesioner Keadilan Kebijakan Koperasi",
   INSTITUSI: "Universitas Palangka Raya – FISIP – Ilmu Administrasi Negara",
@@ -682,38 +682,16 @@ const CONFIG = {
 /* Placeholder di atas dianggap "belum diisi" sehingga situs tetap
    dapat dibuka (mode darurat lokal) alih-alih blank putih.
    URL dan key diperiksa TERPISAH agar pesan galat bisa menunjuk
-   dengan tepat bagian mana yang belum diisi. */
-const URL_SIAP = /^https:\/\/.+\.supabase\.co\/?$/.test(String(CONFIG.SUPABASE_URL||"").trim());
-const KEY_SIAP = String(CONFIG.SUPABASE_ANON_KEY||"").trim().length > 30
-              && !/^ISI_/.test(String(CONFIG.SUPABASE_ANON_KEY||"").trim());
-
-/* Validasi tambahan: pastikan project reference pada SUPABASE_URL memang
-   sama dengan project reference yang tertanam di dalam SUPABASE_ANON_KEY
-   (klaim "ref" pada payload JWT). Jika berbeda, URL pasti salah project
-   (mis. typo satu karakter) dan permintaan akan gagal dengan
-   ERR_NAME_NOT_RESOLVED — lebih baik dideteksi di sini dengan pesan
-   yang jelas daripada menyamar sebagai "jaringan terganggu". */
-function refDariJwt(jwt){
-  try{
-    const bagian = String(jwt||"").split(".");
-    if(bagian.length < 2) return null;
-    let s = bagian[1].replace(/-/g,"+").replace(/_/g,"/");
-    s += "=".repeat((4 - s.length % 4) % 4);
-    const payload = JSON.parse(atob(s));
-    return (payload && payload.ref) || null;
-  }catch(e){ return null; }
-}
-let REF_COCOK = true;
-if(URL_SIAP && KEY_SIAP){
-  const refUrl = (String(CONFIG.SUPABASE_URL).trim().match(/^https:\/\/([^.]+)\.supabase\.co\/?$/i)||[])[1] || null;
-  const refKey = refDariJwt(CONFIG.SUPABASE_ANON_KEY);
-  if(refUrl && refKey && refUrl !== refKey) REF_COCOK = false;
-}
-const SUPA_SIAP = URL_SIAP && KEY_SIAP && REF_COCOK;
+   dengan tepat bagian mana yang belum diisi.
+   CATATAN: Supabase Publishable Key (format sb_publishable_...) BUKAN JWT,
+   sehingga tidak memiliki payload/"ref" untuk didekode. Validasi cukup
+   memeriksa format key, tidak perlu (dan tidak boleh) mendekodenya sebagai JWT. */
+const URL_SIAP = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(String(CONFIG.SUPABASE_URL||"").trim());
+const KEY_SIAP = /^sb_publishable_[A-Za-z0-9_-]+$/.test(String(CONFIG.SUPABASE_PUBLISHABLE_KEY||"").trim());
+const SUPA_SIAP = URL_SIAP && KEY_SIAP;
 const PESAN_CONFIG_KURANG = !URL_SIAP
   ? "SUPABASE_URL belum dikonfigurasi. Isi Project URL Supabase pada blok CONFIG di index.html."
-  : (!KEY_SIAP ? "SUPABASE_ANON_KEY belum dikonfigurasi."
-  : (!REF_COCOK ? "SUPABASE_URL dan SUPABASE_ANON_KEY menunjuk ke project Supabase yang berbeda. Periksa kembali Project URL pada blok CONFIG." : ""));
+  : (!KEY_SIAP ? "SUPABASE_PUBLISHABLE_KEY belum dikonfigurasi atau formatnya tidak valid (harus diawali sb_publishable_)." : "");
 
 /* ============================================================
    MODUL 2 — UTILITAS
@@ -1012,6 +990,10 @@ function pesanRamah(err){
   const kode = err && (err.code||err.status);
   if(typeof navigator!=="undefined" && navigator.onLine===false)
     return "Koneksi internet terputus. Jawaban disimpan sementara di perangkat ini.";
+  if(/No API key found in request/i.test(m))
+    return "Konfigurasi Publishable Key Supabase tidak terkirim. Periksa inisialisasi Supabase Client.";
+  if(/Invalid API key/i.test(m))
+    return "Publishable Key Supabase tidak valid atau tidak cocok dengan project.";
   if(/Failed to fetch|NetworkError|Load failed|Batas waktu/i.test(m))
     return "Jaringan sedang terganggu. Silakan coba lagi sebentar lagi.";
   if(kode==="23505"||/duplicate key/i.test(m))   return "Data ini sudah tercatat sebelumnya.";
@@ -1046,8 +1028,10 @@ async function supabaseRequest(label, bangun, opsi){
       return hasil && "data" in hasil ? hasil.data : hasil;
     }catch(e){
       terakhir=e;
-      const bisaDiulang = !e.code || /^(08|53|57)/.test(String(e.code)) ||
-        /Failed to fetch|NetworkError|Load failed|Batas waktu/i.test(String(e.message||""));
+      const pesanE = String(e.message||"");
+      const permanen = /No API key found in request|Invalid API key|Invalid login credentials|Anonymous sign-ins are disabled/i.test(pesanE);
+      const bisaDiulang = !permanen && ( !e.code || /^(08|53|57)/.test(String(e.code)) ||
+        /Failed to fetch|NetworkError|Load failed|Batas waktu/i.test(pesanE) );
       if(!bisaDiulang || i===ulang) break;
       await sleep(400*(i+1));
     }
@@ -1070,15 +1054,16 @@ const DB = {
       return false; }
     this.client = window.supabase.createClient(
       String(CONFIG.SUPABASE_URL).trim().replace(/\/+$/,""),
-      String(CONFIG.SUPABASE_ANON_KEY).trim(),
+      String(CONFIG.SUPABASE_PUBLISHABLE_KEY).trim(),
       { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false,
                storageKey:"kuesioner-auth" },
         global:{ headers:{ "x-respondent-code": Ident.kode } },
         realtime:{ params:{ eventsPerSecond:4 } } });
     this.siap = true;
-    /* Log aman untuk debugging: TIDAK PERNAH mencetak anon key, password,
+    /* Log aman untuk debugging: TIDAK PERNAH mencetak key lengkap, password,
        access_token, atau refresh_token — hanya URL (publik) dan status boolean. */
     console.info("[Supabase] URL:", CONFIG.SUPABASE_URL);
+    console.info("[Supabase] Publishable key configured:", /^sb_publishable_/.test(String(CONFIG.SUPABASE_PUBLISHABLE_KEY||"")));
     console.info("[Supabase] Client initialized:", !!this.client);
     return true;
   },
@@ -1456,13 +1441,13 @@ const Auth = {
     if(!s || s.user.is_anonymous) return null;
     return s;
   },
-  /* Diberi id user yang sedang login (dari sesi/hasil signInWithPassword) agar
-     pemeriksaan admin_users benar-benar mengecek AKUN YANG LOGIN, bukan baris
-     admin lain yang kebetulan ikut terlihat setelah RLS mengizinkan is_admin(). */
-  async cekPeran(userId){
-    if(!userId) return null;
+  /* Diberi email user yang sedang login (dari sesi/getUser()) agar pemeriksaan
+     admin_users benar-benar mengecek AKUN YANG LOGIN, bukan baris admin lain
+     yang kebetulan ikut terlihat setelah RLS mengizinkan is_admin(). */
+  async cekPeran(email){
+    if(!email) return null;
     const baris = await supabaseRequest("cek-admin", c=>c.from("admin_users")
-      .select("id,email,role").eq("id", userId).maybeSingle(), {ulang:1});
+      .select("id,email,role").eq("email", email).maybeSingle(), {ulang:1});
     return baris || null;
   },
   /* dipanggil saat membuka panel admin */
@@ -1470,7 +1455,7 @@ const Auth = {
     const s = await this.sesiAktif();
     if(!s){ this.bersihkan(); return null; }
     let peran=null;
-    try{ peran = await this.cekPeran(s.user.id); }
+    try{ peran = await this.cekPeran(s.user.email); }
     catch(e){ this.bersihkan(); throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali."); }
     if(!peran){ await DB.client.auth.signOut(); this.bersihkan();
       throw new Error("Akun ini belum terdaftar sebagai admin."); }
@@ -1484,29 +1469,38 @@ const Auth = {
     if(!DB.siap) throw new Error("Database belum dikonfigurasi.");
     const email = String(CONFIG.ADMIN_EMAIL||"").trim();
     if(!email) throw new Error("Konfigurasi email admin belum diatur.");
+    /* Kategori error dibedakan secara eksplisit: API key hilang/salah,
+       jaringan, dan kredensial salah TIDAK boleh disamaratakan. */
+    const pesanAuth = (err)=>{
+      const m = String((err && (err.message||err.msg)) || err || "");
+      if(/No API key found in request/i.test(m))
+        return "Konfigurasi Publishable Key Supabase tidak terkirim. Periksa inisialisasi Supabase Client.";
+      if(/Invalid API key/i.test(m))
+        return "Publishable Key Supabase tidak valid atau tidak cocok dengan project.";
+      if(/Failed to fetch|NetworkError|Load failed/i.test(m))
+        return "Tidak dapat terhubung ke Supabase.";
+      if(/Invalid login credentials/i.test(m))
+        return "Kata sandi admin salah.";
+      return pesanRamah(err);
+    };
     let r;
     try{
       r = await DB.client.auth.signInWithPassword({ email, password:sandi||"" });
     }catch(e){
-      // Gagal sebelum sempat dibalas server (DNS/offline/timeout) → jaringan.
-      throw new Error(/Failed to fetch|NetworkError|Load failed|Batas waktu/i.test(String((e&&e.message)||""))
-        ? "Tidak dapat terhubung ke Supabase. Periksa koneksi internet."
-        : pesanRamah(e));
+      throw new Error(pesanAuth(e));
     }
-    if(r.error){
-      const m = String(r.error.message||"");
-      if(/Failed to fetch|NetworkError|Load failed/i.test(m))
-        throw new Error("Tidak dapat terhubung ke Supabase. Periksa koneksi internet.");
-      if(/Invalid login credentials/i.test(m))
-        throw new Error("Kata sandi admin salah.");
-      throw new Error(pesanRamah(r.error));
+    if(r.error) throw new Error(pesanAuth(r.error));
+    const { data:userData, error:errUser } = await DB.client.auth.getUser();
+    if(errUser || !userData || !userData.user){
+      await DB.client.auth.signOut();
+      throw new Error("Sesi admin tidak dapat diverifikasi. Silakan login kembali.");
     }
     let peran=null;
-    try{ peran = await this.cekPeran(r.data.user.id); }
+    try{ peran = await this.cekPeran(userData.user.email); }
     catch(e){ await DB.client.auth.signOut(); throw e; }
     if(!peran){ await DB.client.auth.signOut();
       throw new Error("Akun berhasil login, tetapi tidak memiliki akses admin."); }
-    this.sesi=r.data.session; this.user=r.data.user; this.peran=peran;
+    this.sesi=r.data.session; this.user=userData.user; this.peran=peran;
     return true;
   },
   async keluar(){
@@ -2678,7 +2672,7 @@ const Admin = {
       </div>
       ${cloud
         ? `<p class="note" style="margin-top:14px">Akun admin dibuat di <strong>Supabase → Authentication → Users</strong>, lalu didaftarkan perannya dengan menjalankan <code>select public.daftarkan_admin('email@anda.com');</code> pada SQL Editor. Email admin itu harus sama dengan <code>CONFIG.ADMIN_EMAIL</code> di <code>index.html</code>. Tidak ada kata sandi yang tersimpan di berkas ini.</p>`
-        : `<p class="note" style="margin-top:14px">Mode pratinjau: isi <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, dan <code>ADMIN_EMAIL</code> pada blok <strong>CONFIG</strong> di berkas <code>index.html</code> agar data tersimpan permanen dan dapat dibuka lintas perangkat. Kata sandi pratinjau: <code>pratinjau</code>.</p>`}
+        : `<p class="note" style="margin-top:14px">Mode pratinjau: isi <code>SUPABASE_URL</code>, <code>SUPABASE_PUBLISHABLE_KEY</code>, dan <code>ADMIN_EMAIL</code> pada blok <strong>CONFIG</strong> di berkas <code>index.html</code> agar data tersimpan permanen dan dapat dibuka lintas perangkat. Kata sandi pratinjau: <code>pratinjau</code>.</p>`}
     </div>`;
     const go=async()=>{
       if(Date.now()<this.lock){ $("#lerr").innerHTML=`<div class="err">✿ Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil((this.lock-Date.now())/1000)} detik.</div>`; return; }
@@ -4951,7 +4945,7 @@ Object.assign(Admin,{
         <li>Buka <strong>SQL Editor → New query</strong>, tempel seluruh <em>Skema SQL</em> di bawah, klik <strong>Run</strong>.</li>
         <li>Buat query baru lagi, tempel <em>Seed SQL</em> di bawah, klik <strong>Run</strong>.</li>
         <li>Buka <strong>Project Settings → API</strong>, salin <em>Project URL</em> dan <em>anon public key</em>.</li>
-        <li>Buka <code>index.html</code>, isi <code>SUPABASE_URL</code> dan <code>SUPABASE_ANON_KEY</code> pada blok <code>CONFIG</code> di baris awal skrip.</li>
+        <li>Buka <code>index.html</code>, isi <code>SUPABASE_URL</code> dan <code>SUPABASE_PUBLISHABLE_KEY</code> pada blok <code>CONFIG</code> di baris awal skrip.</li>
       </ol>
       <h4>2. Membuat akun admin (pengganti kata sandi di frontend)</h4>
       <ol style="padding-left:20px">
