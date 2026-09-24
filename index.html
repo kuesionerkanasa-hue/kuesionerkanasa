@@ -1479,7 +1479,8 @@ const Respon = {
     /* 3. tandai selesai pada record yang sama */
     await supabaseRequest("submit-final", c=>c.from("survey_responses").update({
         status:"submitted", submitted_at:new Date().toISOString(),
-        duration_ms: durasiMs||null, progress:this.progress
+        duration_ms: durasiMs||null, progress:this.progress,
+        last_sync_error:null, sync_error_count:0
       }).eq("id", this.id));
     this.terkirim = true;
     LS.del("draft_kuesioner");
@@ -2668,6 +2669,12 @@ const Survey = {
         btn.disabled=false; btn.textContent="Kirim Jawaban";
         $("#kirim-err",body).innerHTML=`<div class="err">✿ Jawaban belum terkirim: ${esc(err.message)} Jawaban Anda tetap tersimpan — periksa koneksi lalu coba lagi.</div>`;
         toast("Gagal menyimpan jawaban. Silakan coba lagi.","bad");
+        /* Tandai error sinkronisasi (best-effort, tidak pernah menghalangi
+           pengguna) agar admin dapat membantu dari panel Draft & Pemulihan. */
+        if(DB.siap && Respon.id){
+          supabaseRequest("tandai-sync-error", c=>c.rpc("mark_sync_error",
+            {p_response:Respon.id, p_error:String(err.message||"").slice(0,500)}), {ulang:0}).catch(()=>{});
+        }
       }
     };
   }
@@ -2682,6 +2689,7 @@ const MENU=[
  {g:"Uji Statistik",items:[["validitas","Uji Validitas","✔"],["reliabilitas","Uji Reliabilitas","♾"],["normalitas","Uji Normalitas","🔔"],["korelasi","Korelasi","🔗"],["regresi","Regresi","📈"],["beda","Uji T & ANOVA","⚖"],["chisq","Chi-Square","✕"]]},
  {g:"Kualitatif & Luaran",items:[["essay","Analisis Jawaban Essay","✍"],["grafik","Grafik","🎨"],["export","Export","⬇"],["laporan","Laporan Otomatis","📜"],["pengaturan","Pengaturan","⚙"]]},
  {g:"Simulasi",items:[["sintetis","Randomize Majority Picker","🎲"]]},
+ {g:"Draft & Pemulihan",items:[["draft","Draft & Pemulihan","🛠"]]},
  {g:"E-Sertifikat",items:[["sertifikat","E-Sertifikat","🎓"]]}
 ];
 
@@ -6350,6 +6358,636 @@ Object.assign(Admin,{
       catch(err){ toast(ECert.pesan(err),"bad"); b.disabled=false; } }; }
 });
 
+
+
+/* ============================================================
+   MODUL 13B — ADMIN: Draft & Pemulihan
+   (Admin Draft Recovery, Accept Draft, Clear Sync Error,
+    auto-unlock E-Sertifikat lewat RPC admin_accept_draft)
+   ============================================================ */
+const SQL_MIGRASI_DRAFT = `-- =========================================================
+-- MIGRATION — DRAFT RECOVERY, ADMIN ACCEPT DRAFT,
+-- CLEAR TECHNICAL SYNC ERROR, E-SERTIFIKAT AUTO-UNLOCK,
+-- SECURITY ADVISOR HARDENING
+-- Universitas Palangka Raya — FISIP
+-- ---------------------------------------------------------
+-- Cara pakai: Supabase Dashboard > SQL Editor > New query >
+-- tempel SELURUH isi berkas ini > Run.
+-- Non-destruktif: TIDAK ADA drop table, truncate, atau delete
+-- data penelitian. Aman dijalankan berulang kali (idempoten).
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- 1. KOLOM BARU pada survey_responses (non-destruktif)
+-- ---------------------------------------------------------
+alter table public.survey_responses
+  add column if not exists last_sync_error   text,
+  add column if not exists sync_error_count  integer not null default 0,
+  add column if not exists accepted_by       uuid,
+  add column if not exists accepted_at       timestamptz,
+  add column if not exists accept_method     text,
+  add column if not exists accept_note       text;
+
+alter table public.survey_responses
+  drop constraint if exists survey_responses_accept_method_chk;
+alter table public.survey_responses
+  add constraint survey_responses_accept_method_chk
+  check (accept_method is null or accept_method in ('accepted','override'));
+
+create index if not exists idx_responses_sync_error
+  on public.survey_responses(sync_error_count) where sync_error_count > 0;
+
+-- ---------------------------------------------------------
+-- 2. TABEL BARU — audit log tindakan admin (draft recovery)
+-- ---------------------------------------------------------
+create table if not exists public.admin_actions (
+  id             uuid primary key default gen_random_uuid(),
+  admin_user_id  uuid,
+  action_type    text not null,
+  response_id    uuid,
+  before_status  text,
+  after_status   text,
+  notes          text,
+  created_at     timestamptz not null default now(),
+  constraint admin_actions_type_chk check (action_type in
+    ('DRAFT_ACCEPTED','DRAFT_ACCEPTED_OVERRIDE','SYNC_ERROR_CLEARED','CERTIFICATE_UNLOCKED'))
+);
+
+create index if not exists idx_admin_actions_response on public.admin_actions(response_id);
+create index if not exists idx_admin_actions_created   on public.admin_actions(created_at desc);
+
+alter table public.admin_actions enable row level security;
+
+drop policy if exists aa_admin_baca on public.admin_actions;
+create policy aa_admin_baca on public.admin_actions
+  for select to authenticated
+  using ( public.is_admin() );
+
+-- Tidak ada policy insert/update/delete untuk klien mana pun.
+-- Baris HANYA ditulis dari dalam fungsi SECURITY DEFINER di bawah
+-- (admin_accept_draft, admin_clear_sync_error) — tidak pernah
+-- ditulis langsung dari front-end.
+revoke all on public.admin_actions from public, anon, authenticated;
+grant select on public.admin_actions to authenticated;
+
+-- ---------------------------------------------------------
+-- 3. HARDENING — search_path eksplisit pada fungsi lama
+--    (memperbaiki peringatan Security Advisor "Function Search
+--    Path Mutable". Hanya menambah SET search_path; definisi &
+--    hak akses fungsi tidak diubah, sehingga kuesioner responden
+--    dan E-Sertifikat tidak terpengaruh.)
+-- ---------------------------------------------------------
+alter function public.set_updated_at()        set search_path = public;
+alter function public.kode_responden()         set search_path = public;
+alter function public.diagnosa_kode()          set search_path = public;
+alter function public.certificates_guard()     set search_path = public;
+alter function public.gen_verification_code()  set search_path = public;
+
+-- ---------------------------------------------------------
+-- 4. FUNGSI PEMBANTU (ADMIN-ONLY) — hitung kelengkapan draft
+--    Dipakai bersama oleh admin_list_drafts, admin_draft_detail,
+--    dan admin_accept_draft agar aturan kelengkapan konsisten.
+--    Tidak pernah mengisi atau mengubah jawaban — hanya membaca.
+-- ---------------------------------------------------------
+create or replace function public.admin_draft_completeness(p_response uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $fn$
+declare
+  v_total_wajib integer;
+  v_terjawab    integer;
+  v_demografi   integer;
+  v_setuju      boolean;
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_FORBIDDEN' using errcode = 'P0001';
+  end if;
+
+  select count(*) into v_total_wajib
+    from public.survey_questions
+    where required and is_active and section_id <> 'IDENT';
+
+  select count(distinct sa.question_id) into v_terjawab
+    from public.survey_answers sa
+    join public.survey_questions sq on sq.id = sa.question_id
+    where sa.response_id = p_response
+      and sq.required and sq.is_active and sq.section_id <> 'IDENT'
+      and ( sa.answer_value is not null
+         or sa.answer_numeric is not null
+         or nullif(btrim(sa.answer_text), '') is not null
+         or (sa.answer_json is not null
+             and sa.answer_json not in ('null'::jsonb, '[]'::jsonb, '{}'::jsonb)) );
+
+  select
+      (case when gender         is not null then 1 else 0 end)
+    + (case when age_group      is not null then 1 else 0 end)
+    + (case when institution    is not null and btrim(institution) <> '' then 1 else 0 end)
+    + (case when education      is not null and btrim(education)  <> '' then 1 else 0 end)
+    + (case when semester       is not null then 1 else 0 end)
+    + (case when domicile       is not null then 1 else 0 end)
+    + (case when heard_coop     is not null then 1 else 0 end)
+    + (case when info_frequency is not null then 1 else 0 end)
+    + (case when info_source    is not null then 1 else 0 end)
+    + (case when heard_policy   is not null then 1 else 0 end)
+  into v_demografi
+  from public.respondent_profiles where response_id = p_response;
+  v_demografi := coalesce(v_demografi, 0);
+
+  select coalesce((r.progress ->> 'setuju')::boolean, false) into v_setuju
+    from public.survey_responses r where r.id = p_response;
+
+  return jsonb_build_object(
+    'total_wajib',      coalesce(v_total_wajib, 0),
+    'terjawab',         coalesce(v_terjawab, 0),
+    'demografi_terisi', v_demografi,
+    'demografi_total',  10,
+    'persetujuan',      coalesce(v_setuju, false),
+    'lengkap',          ( coalesce(v_terjawab,0) >= coalesce(v_total_wajib,0)
+                           and v_demografi >= 10 and coalesce(v_setuju,false) )
+  );
+end;
+$fn$;
+
+revoke all on function public.admin_draft_completeness(uuid) from public, anon, authenticated;
+grant execute on function public.admin_draft_completeness(uuid) to authenticated;
+
+-- ---------------------------------------------------------
+-- 5. RPC ADMIN-ONLY — daftar seluruh draft + ringkasan kelengkapan
+--    (menu "Draft & Pemulihan")
+-- ---------------------------------------------------------
+create or replace function public.admin_list_drafts()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $fn$
+declare
+  v_out jsonb;
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_FORBIDDEN' using errcode = 'P0001';
+  end if;
+
+  select coalesce(jsonb_agg(x order by (x ->> 'updated_at') desc), '[]'::jsonb) into v_out
+  from (
+    select jsonb_build_object(
+      'id',               r.id,
+      'respondent_code',  r.respondent_code,
+      'started_at',       r.started_at,
+      'updated_at',       r.updated_at,
+      'last_sync_error',  r.last_sync_error,
+      'sync_error_count', r.sync_error_count,
+      'kelengkapan',      public.admin_draft_completeness(r.id)
+    ) as x
+    from public.survey_responses r
+    where r.status = 'draft'
+  ) s;
+
+  return v_out;
+end;
+$fn$;
+
+revoke all on function public.admin_list_drafts() from public, anon, authenticated;
+grant execute on function public.admin_list_drafts() to authenticated;
+
+-- ---------------------------------------------------------
+-- 6. RPC ADMIN-ONLY — detail satu draft (tombol "Periksa")
+-- ---------------------------------------------------------
+create or replace function public.admin_draft_detail(p_response uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $fn$
+declare
+  v_resp   public.survey_responses;
+  v_terisi jsonb;
+  v_kosong jsonb;
+  v_demo   jsonb;
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_FORBIDDEN' using errcode = 'P0001';
+  end if;
+
+  select * into v_resp from public.survey_responses where id = p_response;
+  if v_resp.id is null then
+    raise exception 'ADMIN_DRAFT_NOT_FOUND' using errcode = 'P0001';
+  end if;
+
+  select coalesce(jsonb_agg(sq.id order by sq.sort_order), '[]'::jsonb) into v_terisi
+    from public.survey_questions sq
+    join public.survey_answers sa on sa.question_id = sq.id and sa.response_id = p_response
+    where sq.required and sq.is_active and sq.section_id <> 'IDENT'
+      and ( sa.answer_value is not null or sa.answer_numeric is not null
+         or nullif(btrim(sa.answer_text), '') is not null
+         or (sa.answer_json is not null
+             and sa.answer_json not in ('null'::jsonb, '[]'::jsonb, '{}'::jsonb)) );
+
+  select coalesce(jsonb_agg(sq.id order by sq.sort_order), '[]'::jsonb) into v_kosong
+    from public.survey_questions sq
+    where sq.required and sq.is_active and sq.section_id <> 'IDENT'
+      and not (sq.id in (select jsonb_array_elements_text(v_terisi)));
+
+  select (to_jsonb(p) - 'id' - 'response_id' - 'other_values' - 'created_at' - 'updated_at')
+    into v_demo
+    from public.respondent_profiles p where p.response_id = p_response;
+
+  return jsonb_build_object(
+    'id',               v_resp.id,
+    'respondent_code',  v_resp.respondent_code,
+    'status',           v_resp.status,
+    'started_at',       v_resp.started_at,
+    'updated_at',        v_resp.updated_at,
+    'last_sync_error',  v_resp.last_sync_error,
+    'sync_error_count', v_resp.sync_error_count,
+    'progress',         v_resp.progress,
+    'demografi',        coalesce(v_demo, '{}'::jsonb),
+    'terisi',           v_terisi,
+    'kosong',           v_kosong,
+    'kelengkapan',      public.admin_draft_completeness(p_response)
+  );
+end;
+$fn$;
+
+revoke all on function public.admin_draft_detail(uuid) from public, anon, authenticated;
+grant execute on function public.admin_draft_detail(uuid) to authenticated;
+
+-- ---------------------------------------------------------
+-- 7. RPC ADMIN-ONLY — terima draft (finalisasi aman via RPC,
+--    BUKAN update status langsung dari frontend)
+--    p_override = false → hanya berhasil bila kelengkapan terpenuhi
+--                          (dipakai juga oleh tombol "Retry Sync").
+--    p_override = true  → admin sengaja melewati pengecekan
+--                          kelengkapan; p_note WAJIB diisi dan
+--                          tercatat di admin_actions.
+--    Tidak pernah mengubah survey_answers / respondent_profiles,
+--    tidak pernah membuat response baru — response_id sama.
+-- ---------------------------------------------------------
+create or replace function public.admin_accept_draft(p_response uuid, p_override boolean default false, p_note text default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $fn$
+declare
+  v_resp    public.survey_responses;
+  v_lengkap jsonb;
+  v_ok      boolean;
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_FORBIDDEN' using errcode = 'P0001';
+  end if;
+
+  select * into v_resp from public.survey_responses where id = p_response for update;
+  if v_resp.id is null then
+    raise exception 'ADMIN_DRAFT_NOT_FOUND' using errcode = 'P0001';
+  end if;
+
+  -- proteksi dari double accept: sudah submitted → tidak ada perubahan.
+  if v_resp.status = 'submitted' then
+    return jsonb_build_object('already', true, 'status', 'submitted');
+  end if;
+
+  if v_resp.status <> 'draft' then
+    raise exception 'ADMIN_STATUS_INVALID' using errcode = 'P0001';
+  end if;
+
+  if p_override and nullif(btrim(coalesce(p_note, '')), '') is null then
+    raise exception 'ADMIN_OVERRIDE_NOTE_REQUIRED' using errcode = 'P0001';
+  end if;
+
+  v_lengkap := public.admin_draft_completeness(p_response);
+  v_ok := coalesce((v_lengkap ->> 'lengkap')::boolean, false);
+
+  if not v_ok and not p_override then
+    raise exception 'ADMIN_DRAFT_INCOMPLETE' using errcode = 'P0001';
+  end if;
+
+  update public.survey_responses set
+    status           = 'submitted',
+    submitted_at     = coalesce(submitted_at, now()),
+    accepted_by      = auth.uid(),
+    accepted_at      = now(),
+    accept_method    = case when p_override then 'override' else 'accepted' end,
+    accept_note      = p_note,
+    last_sync_error  = null,
+    sync_error_count = 0
+  where id = p_response;
+
+  insert into public.admin_actions(admin_user_id, action_type, response_id, before_status, after_status, notes)
+  values (auth.uid(), case when p_override then 'DRAFT_ACCEPTED_OVERRIDE' else 'DRAFT_ACCEPTED' end,
+          p_response, 'draft', 'submitted', p_note);
+
+  -- E-Sertifikat: tidak dibuat di sini. claim_certificate() yang sudah ada
+  -- memeriksa status = 'submitted' di server, sehingga otomatis "terbuka"
+  -- begitu status berubah, tanpa membuat certificate dari fungsi ini.
+  return jsonb_build_object('already', false, 'status', 'submitted', 'override', p_override, 'kelengkapan', v_lengkap);
+end;
+$fn$;
+
+revoke all on function public.admin_accept_draft(uuid, boolean, text) from public, anon, authenticated;
+grant execute on function public.admin_accept_draft(uuid, boolean, text) to authenticated;
+
+-- ---------------------------------------------------------
+-- 8. RPC ADMIN-ONLY — bersihkan status sinkronisasi teknis.
+--    HANYA membersihkan last_sync_error / sync_error_count.
+--    Tidak pernah mengubah status response atau data jawaban.
+-- ---------------------------------------------------------
+create or replace function public.admin_clear_sync_error(p_response uuid)
+returns jsonb
+language plpgsql security definer set search_path = public as $fn$
+declare
+  v_status text;
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_FORBIDDEN' using errcode = 'P0001';
+  end if;
+
+  select status into v_status from public.survey_responses where id = p_response;
+  if v_status is null then
+    raise exception 'ADMIN_DRAFT_NOT_FOUND' using errcode = 'P0001';
+  end if;
+
+  update public.survey_responses
+    set last_sync_error = null, sync_error_count = 0
+    where id = p_response;
+
+  insert into public.admin_actions(admin_user_id, action_type, response_id, before_status, after_status, notes)
+  values (auth.uid(), 'SYNC_ERROR_CLEARED', p_response, v_status, v_status, null);
+
+  return jsonb_build_object('ok', true);
+end;
+$fn$;
+
+revoke all on function public.admin_clear_sync_error(uuid) from public, anon, authenticated;
+grant execute on function public.admin_clear_sync_error(uuid) to authenticated;
+
+-- ---------------------------------------------------------
+-- 9. RPC PUBLIC-SAFE (kategori B: dibutuhkan RESPONDEN) — tandai
+--    error sinkronisasi teknis saat "Kirim Jawaban" gagal di
+--    perangkat responden. Dipanggil otomatis oleh index.html.
+--    Dibatasi milik_responden(): hanya bisa menandai response
+--    miliknya sendiri, dan hanya selama masih berstatus draft.
+-- ---------------------------------------------------------
+create or replace function public.mark_sync_error(p_response uuid, p_error text)
+returns void
+language plpgsql security definer set search_path = public as $fn$
+begin
+  if not public.milik_responden(p_response) then
+    return;
+  end if;
+  update public.survey_responses
+    set last_sync_error  = left(coalesce(p_error, ''), 500),
+        sync_error_count = sync_error_count + 1
+    where id = p_response and status = 'draft';
+end;
+$fn$;
+
+revoke all on function public.mark_sync_error(uuid, text) from public;
+grant execute on function public.mark_sync_error(uuid, text) to anon, authenticated;
+
+-- ---------------------------------------------------------
+-- 10. Muat ulang cache skema PostgREST agar RPC baru langsung terlihat.
+-- ---------------------------------------------------------
+notify pgrst, 'reload schema';
+
+-- =========================================================
+-- SELESAI. Pemeriksaan cepat (opsional):
+--   select count(*) from public.survey_responses where status='draft';
+--   select count(*) from public.admin_actions;             -- 0 pada awalnya
+--   select count(*) from public.survey_responses;           -- jumlah lama tetap utuh
+-- =========================================================
+`;
+
+/* ---------------- akses Supabase (semua lewat RPC admin) ---------------- */
+const DraftAdmin = {
+  _rpc(label, fn, args){ return supabaseRequest(label, c=>c.rpc(fn, args||{}), {ulang:1}); },
+  daftar(){ return this._rpc("draft-list","admin_list_drafts"); },
+  detail(id){ return this._rpc("draft-detail","admin_draft_detail",{p_response:id}); },
+  terima(id,override,note){ return this._rpc("draft-terima","admin_accept_draft",
+    {p_response:id,p_override:!!override,p_note:note||null}); },
+  clearError(id){ return this._rpc("draft-clear","admin_clear_sync_error",{p_response:id}); },
+  kodeAsli(e){ const asli=(e&&e.asli)||e||{}; return String(asli.message||(e&&e.message)||""); },
+  pesan(e){
+    const m=this.kodeAsli(e); const asli=(e&&e.asli)||e||{}; const kode=asli.code||(e&&e.code);
+    if(/ADMIN_FORBIDDEN/.test(m))              return "Akses ditolak. Fitur ini hanya untuk admin.";
+    if(/ADMIN_DRAFT_NOT_FOUND/.test(m))        return "Draft tidak ditemukan (mungkin sudah diproses di perangkat/tab lain).";
+    if(/ADMIN_STATUS_INVALID/.test(m))         return "Response ini bukan lagi berstatus draft.";
+    if(/ADMIN_DRAFT_INCOMPLETE/.test(m))       return "Draft belum lengkap. Gunakan \\u201CTerima dengan Override\\u201D bila memang ingin dipaksakan.";
+    if(/ADMIN_OVERRIDE_NOTE_REQUIRED/.test(m)) return "Alasan override wajib diisi.";
+    if(kode==="PGRST202"||kode==="PGRST205"||kode==="42883"||kode==="42P01"||/schema cache|Could not find the (function|table)/i.test(m))
+      return "Fitur Draft & Pemulihan belum aktif di database. Admin perlu menjalankan migration SQL Draft & Pemulihan (Admin \\u2192 Draft & Pemulihan).";
+    return (e&&e.message) || "Terjadi gangguan. Silakan coba lagi.";
+  }
+};
+
+/* ---------------- ADMIN → Draft & Pemulihan ---------------- */
+Object.assign(Admin,{
+  drRows:[], drCari:"",
+
+  async v_draft(body){
+    body.innerHTML=`<div class="grid g4" style="margin-bottom:16px">${[0,1,2,3].map(()=>`<div class="skel kpi-s"></div>`).join("")}</div><div class="skel box-s"></div>`;
+    if(!Store.cloud){ body.innerHTML=`<div class="card"><div class="empty"><div class="big">\ud83d\udd0c</div><h4>Memerlukan Supabase</h4>
+      <p>Draft & Pemulihan hanya tersedia bila situs terhubung ke Supabase.</p></div></div>`; return; }
+    try{ this.drRows = await DraftAdmin.daftar(); }
+    catch(e){
+      if(this.view!=="draft") return;
+      body.innerHTML=`<div class="card"><div class="err" style="font-size:.92rem">\u273f ${esc(DraftAdmin.pesan(e))}</div>
+        <p class="note" style="margin-top:12px">Migration di bawah bersifat non-destruktif \u2014 tidak ada DROP/TRUNCATE/DELETE data lama, aman dijalankan berulang.</p></div>${this.drMigrasi()}`;
+      this.drIkatMigrasi(body); return; }
+    if(this.view!=="draft") return;
+    this.drGambar(body);
+  },
+
+  drMigrasi(){
+    return `<details class="acc" style="margin-top:16px"><summary>Migration SQL Draft & Pemulihan (non-destruktif)</summary><div>
+      <p class="note" style="margin-bottom:10px">Tempel seluruh isi ke <strong>Supabase \u2192 SQL Editor \u2192 Run</strong>. Tidak ada DROP TABLE, TRUNCATE, atau DELETE; data penelitian lama tidak disentuh. Aman dijalankan berulang.</p>
+      <textarea readonly id="drSql" style="min-height:190px;font-family:ui-monospace,monospace;font-size:.76rem">${esc(SQL_MIGRASI_DRAFT)}</textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn sm ghost" id="drSalin">Salin SQL</button>
+        <button class="btn sm" id="drUnduhSql">Unduh migration-draft-recovery.sql</button></div></div></details>`; },
+  drIkatMigrasi(body){
+    const s=$("#drSalin",body), u=$("#drUnduhSql",body);
+    if(s) s.onclick=()=>{ try{ navigator.clipboard.writeText(SQL_MIGRASI_DRAFT); toast("SQL disalin","ok"); }catch(e){ toast("Salin manual dari kotak teks."); } };
+    if(u) u.onclick=()=>saveFile("migration-draft-recovery.sql",new Blob([SQL_MIGRASI_DRAFT],{type:"text/plain;charset=utf-8"})); },
+
+  drModal(html){
+    const m=document.createElement("div"); m.className="ec-modal"; m.setAttribute("role","dialog");
+    m.innerHTML=`<div class="card rise" style="max-width:560px;width:92vw;max-height:86vh;overflow:auto;text-align:left">${html}</div>`;
+    const tutup=()=>{ m.remove(); document.removeEventListener("keydown",esc_); };
+    const esc_=e=>{ if(e.key==="Escape") tutup(); };
+    m.addEventListener("click",e=>{ if(e.target===m) tutup(); });
+    document.addEventListener("keydown",esc_);
+    document.body.appendChild(m);
+    return {el:m,tutup}; },
+
+  drGambar(body){
+    const rows=this.drRows;
+    const lengkap=rows.filter(r=>r.kelengkapan && r.kelengkapan.lengkap);
+    const error=rows.filter(r=>r.sync_error_count>0);
+    body.innerHTML=`
+      <div class="grid g4" style="margin-bottom:16px">
+        ${this.kpi("\ud83d\uddc2",rows.length,"Draft Aktif")}
+        ${this.kpi("\u2705",lengkap.length,"Draft Lengkap")}
+        ${this.kpi("\u26a0",error.length,"Draft dengan Error Sinkronisasi")}
+        ${this.kpi("\u23f3",rows.length-lengkap.length,"Draft Belum Lengkap")}
+      </div>
+      <div class="chartbox" style="margin-bottom:16px">
+        <div class="hd"><strong>Draft & Pemulihan</strong>
+          <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="search" id="drCari" placeholder="Cari kode responden\u2026" value="${esc(this.drCari)}" style="width:220px;font-size:.85rem;padding:8px 12px">
+            ${error.length?`<button class="btn xs ghost" id="drRetryAll">\u21bb Retry Semua Draft Error (${error.length})</button>`:""}
+            <button class="btn xs ghost" id="drMuat">\u21bb Muat ulang</button></span></div>
+        <div id="drTabel"></div>
+        <p class="note" style="margin-top:12px">Menerima draft hanya mengubah status, waktu kirim, dan informasi audit \u2014 jawaban dan data demografi tidak pernah diubah dari panel ini. E-Sertifikat otomatis dapat dibuka begitu status menjadi submitted.</p>
+      </div>${this.drMigrasi()}`;
+    this.drTabel(body);
+    $("#drCari",body).oninput=e=>{ this.drCari=e.target.value; this.drTabel(body); };
+    $("#drMuat",body).onclick=async e=>{ const b=e.currentTarget; b.disabled=true;
+      try{ this.drRows=await DraftAdmin.daftar(); this.drGambar(body); toast("Data draft dimuat ulang","ok"); }
+      catch(err){ toast(DraftAdmin.pesan(err),"bad"); b.disabled=false; } };
+    const rall=$("#drRetryAll",body); if(rall) rall.onclick=()=>this.drRetryAll(body);
+    this.drIkatMigrasi(body); },
+
+  drTabel(body){
+    const q=this.drCari.trim().toLowerCase();
+    const rows=this.drRows.filter(r=>!q||String(r.respondent_code||"").toLowerCase().includes(q));
+    const wadah=$("#drTabel",body); if(!wadah) return;
+    if(!rows.length){ wadah.innerHTML=`<div class="empty" style="padding:24px 10px"><div class="big">\ud83c\udf3f</div>
+      <h4>${this.drRows.length?"Tidak ada yang cocok":"Tidak ada draft tertunda"}</h4>
+      <p>${this.drRows.length?"Ubah kata kunci pencarian.":"Response yang belum berhasil dikirim (status draft) akan muncul di sini."}</p></div>`; return; }
+    wadah.innerHTML=this.tabel(
+      ["Kode Responden","Waktu Mulai","Update Terakhir","Jawaban","Demografi","Sinkronisasi","Kelengkapan","Aksi"],
+      rows.map(r=>{
+        const k=r.kelengkapan||{};
+        const jwb=(k.terjawab==null?"\u2013":k.terjawab+"/"+k.total_wajib);
+        const demo=(k.demografi_terisi==null?"\u2013":k.demografi_terisi+"/"+(k.demografi_total||10));
+        const sync=r.sync_error_count>0
+          ? `<span class="badge bad">\u26a0 Error (${r.sync_error_count})</span>`
+          : `<span class="badge ok">Siap</span>`;
+        const status=k.lengkap?`<span class="badge ok">LENGKAP</span>`:`<span class="badge mute">BELUM LENGKAP</span>`;
+        const id=esc(r.id);
+        return [
+          `<strong>${esc(r.respondent_code)}</strong>`,
+          tglID(r.started_at), tglID(r.updated_at), jwb, demo, {v:sync}, {v:status},
+          {v:`<span style="display:inline-flex;gap:6px;flex-wrap:wrap">
+              <button class="btn xs ghost" data-dr="periksa" data-id="${id}">Periksa</button>
+              ${r.sync_error_count>0?`<button class="btn xs ghost" data-dr="clear" data-id="${id}">Clear Error</button>`:""}
+              <button class="btn xs ghost" data-dr="retry" data-id="${id}">Retry Sync</button>
+              <button class="btn xs" data-dr="accept" data-id="${id}" ${k.lengkap?"":"disabled"}>\u2713 Terima</button>
+              <button class="btn xs rose" data-dr="override" data-id="${id}">Terima dgn Override</button>
+            </span>`}
+        ]; }));
+    wadah.onclick=e=>{
+      const b=e.target.closest("[data-dr]"); if(!b) return;
+      const r=this.drRows.find(x=>x.id===b.dataset.id); if(!r) return;
+      const aksi=b.dataset.dr;
+      if(aksi==="periksa")  return this.drPeriksa(body,r);
+      if(aksi==="clear")    return this.drClear(body,r,b);
+      if(aksi==="retry")    return this.drRetry(body,r,b);
+      if(aksi==="accept")   return this.drTerima(body,r,false);
+      if(aksi==="override") return this.drTerima(body,r,true);
+    }; },
+
+  async drPeriksa(body,r){
+    const {el,tutup}=this.drModal(`<p style="text-align:center;padding:20px 0"><span class="spin"></span></p>`);
+    let d;
+    try{ d=await DraftAdmin.detail(r.id); }
+    catch(e){ el.querySelector(".card").innerHTML=`<div class="err">\u273f ${esc(DraftAdmin.pesan(e))}</div>
+      <div style="margin-top:12px"><button class="btn sm ghost" data-dr="tutup">Tutup</button></div>`;
+      el.querySelector("[data-dr=tutup]").onclick=tutup; return; }
+    const k=d.kelengkapan||{}, demo=d.demografi||{};
+    el.querySelector(".card").innerHTML=`
+      <h3 style="margin-top:0">Detail Draft \u2014 ${esc(d.respondent_code)}</h3>
+      <dl class="ec-dl">
+        <dt>Response ID</dt><dd><code style="font-size:.74rem;word-break:break-all">${esc(d.id)}</code></dd>
+        <dt>Waktu mulai</dt><dd>${tglID(d.started_at)}</dd>
+        <dt>Update terakhir</dt><dd>${tglID(d.updated_at)}</dd>
+        <dt>Jawaban wajib</dt><dd>${k.terjawab}/${k.total_wajib}</dd>
+        <dt>Demografi terisi</dt><dd>${k.demografi_terisi}/${k.demografi_total}</dd>
+        <dt>Persetujuan</dt><dd>${k.persetujuan?"Sudah":"Belum"}</dd>
+        <dt>Status sinkronisasi</dt><dd>${d.sync_error_count>0?("\u26a0 Error ("+d.sync_error_count+"\u00d7) \u2014 "+esc(d.last_sync_error||"tidak ada rincian")):"Tidak ada error"}</dd>
+        <dt>Pertanyaan kosong</dt><dd style="font-size:.82rem">${(d.kosong&&d.kosong.length)?esc(d.kosong.join(", ")):"Tidak ada"}</dd>
+      </dl>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn sm ghost" data-dr="tutup">Tutup</button>
+        ${d.sync_error_count>0?`<button class="btn sm ghost" data-dr="clear2">Clear Error</button>`:""}
+        <button class="btn sm ghost" data-dr="retry2">Retry Sync</button>
+        <button class="btn sm" data-dr="accept2" ${k.lengkap?"":"disabled"}>\u2713 Terima Draft</button>
+        <button class="btn sm rose" data-dr="override2">Terima dengan Override</button>
+      </div>`;
+    const q=sel=>el.querySelector(sel);
+    q("[data-dr=tutup]").onclick=tutup;
+    const clearBtn=q("[data-dr=clear2]"); if(clearBtn) clearBtn.onclick=()=>{ tutup(); this.drClear(body,r); };
+    q("[data-dr=retry2]").onclick=()=>{ tutup(); this.drRetry(body,r); };
+    q("[data-dr=accept2]").onclick=()=>{ tutup(); this.drTerima(body,r,false); };
+    q("[data-dr=override2]").onclick=()=>{ tutup(); this.drTerima(body,r,true); }; },
+
+  async drClear(body,r,btn){
+    if(btn) btn.disabled=true;
+    try{ await DraftAdmin.clearError(r.id); toast("Status sinkronisasi dibersihkan","ok");
+      this.drRows=await DraftAdmin.daftar(); this.drGambar(body); }
+    catch(e){ toast(DraftAdmin.pesan(e),"bad"); if(btn) btn.disabled=false; } },
+
+  async drRetry(body,r,btn){
+    if(btn) btn.disabled=true;
+    try{
+      const hasil=await DraftAdmin.terima(r.id,false,null);
+      toast(hasil.already?"Response ini sudah submitted.":"\u2713 Sinkronisasi berhasil \u2014 draft ditandai submitted","ok");
+      this.drRows=await DraftAdmin.daftar(); this.drGambar(body);
+    }catch(e){
+      if(/ADMIN_DRAFT_INCOMPLETE/.test(DraftAdmin.kodeAsli(e))) toast("Draft belum lengkap \u2014 tetap berstatus draft.","bad");
+      else toast(DraftAdmin.pesan(e),"bad");
+      if(btn) btn.disabled=false;
+    } },
+
+  async drRetryAll(body){
+    const target=this.drRows.filter(r=>r.sync_error_count>0);
+    if(!target.length) return;
+    if(!confirm(`Coba sinkronisasi ulang ${target.length} draft berstatus error?\n\nHanya draft yang sudah lengkap yang akan berubah menjadi submitted; sisanya tetap draft.`)) return;
+    let ok=0, gagal=0;
+    for(const r of target){ try{ await DraftAdmin.terima(r.id,false,null); ok++; }catch(e){ gagal++; } }
+    toast(`Retry selesai: ${ok} berhasil, ${gagal} tetap draft`,"ok");
+    this.drRows=await DraftAdmin.daftar(); this.drGambar(body); },
+
+  drTerima(body,r,override){
+    const k=r.kelengkapan||{};
+    if(override){
+      const html=`<h3 style="margin-top:0">Terima dengan Override</h3>
+        <p>Anda akan menandai draft <strong>${esc(r.respondent_code)}</strong> sebagai <strong>submitted</strong> meskipun kelengkapan berikut belum terpenuhi:</p>
+        <ul style="margin:10px 0 14px;padding-left:20px;font-size:.9rem">
+          <li>Jawaban wajib: ${k.terjawab}/${k.total_wajib}</li>
+          <li>Demografi: ${k.demografi_terisi}/${k.demografi_total}</li>
+          <li>Persetujuan: ${k.persetujuan?"Sudah":"Belum"}</li>
+        </ul>
+        <label class="fl" for="drNote">Alasan override (wajib, tercatat di audit log)</label>
+        <textarea id="drNote" style="min-height:70px" placeholder="Contoh: dikonfirmasi manual ke responden, data lengkap di perangkat tapi gagal sinkron."></textarea>
+        <div id="drNoteErr"></div>
+        <p class="note" style="margin-top:10px">Override hanya mengubah status response. Jawaban kosong TIDAK akan diisi otomatis.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn sm ghost" data-dr="batal">Batal</button>
+          <button class="btn sm rose" data-dr="lanjut">Saya mengerti \u2014 lanjutkan</button>
+        </div>`;
+      const {el,tutup}=this.drModal(html);
+      el.querySelector("[data-dr=batal]").onclick=tutup;
+      el.querySelector("[data-dr=lanjut]").onclick=()=>{
+        const note=el.querySelector("#drNote").value.trim();
+        if(!note){ el.querySelector("#drNoteErr").innerHTML=`<div class="err">\u273f Alasan override wajib diisi.</div>`; return; }
+        tutup(); this.drJalankanTerima(body,r,true,note); };
+      return; }
+    const html=`<h3 style="margin-top:0">Terima draft ini sebagai respons selesai?</h3>
+      <dl class="ec-dl">
+        <dt>Kode responden</dt><dd>${esc(r.respondent_code)}</dd>
+        <dt>Jawaban wajib</dt><dd>${k.terjawab}/${k.total_wajib}</dd>
+        <dt>Demografi</dt><dd>${k.demografi_terisi}/${k.demografi_total}</dd>
+      </dl>
+      <p class="note">Response akan diubah menjadi <strong>submitted</strong> dan E-Sertifikat dapat dibuka.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn sm ghost" data-dr="batal">Batal</button>
+        <button class="btn sm" data-dr="lanjut">\u2713 Terima Draft</button>
+      </div>`;
+    const {el,tutup}=this.drModal(html);
+    el.querySelector("[data-dr=batal]").onclick=tutup;
+    el.querySelector("[data-dr=lanjut]").onclick=()=>{ tutup(); this.drJalankanTerima(body,r,false,null); }; },
+
+  async drJalankanTerima(body,r,override,note){
+    try{
+      const hasil=await DraftAdmin.terima(r.id,override,note);
+      if(hasil.already) toast("Response ini sudah submitted.","ok");
+      else toast(override?"Draft diterima dengan override":"Draft diterima \u2014 E-Sertifikat dapat dibuka","ok");
+      this.drRows=await DraftAdmin.daftar(); this.drGambar(body);
+    }catch(e){ toast(DraftAdmin.pesan(e),"bad"); } }
+});
 
 /* ============================================================
    MODUL 14 — BOOT
