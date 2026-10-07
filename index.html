@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://*.supabase.co data: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' data: blob: ./assets/ assets/; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;">
 <title>PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN</title>
 <meta name="description" content="Kuesioner penelitian mahasiswa Universitas Palangka Raya mengenai pengaruh keadilan kebijakan terhadap sikap mahasiswa atas perluasan akses koperasi perkebunan kelapa sawit di Kabupaten Seruyan.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -422,65 +423,64 @@ details.acc>div{padding:16px}
    LANDING PAGE — FRESH FAIRY EDITORIAL ACADEMIC DESIGN SYSTEM
    ============================================================ */
 
-/* CSS Custom Properties for Landing Page */
+/* CSS Custom Properties for Landing Page (Fresh Fairy Editorial Academic System) */
 :root {
-  --lp-canvas: #FAF8F5;
-  --lp-canvas-subtle: #F3EFE9;
+  --lp-canvas: #FAF7F0;
+  --lp-canvas-subtle: #F4EFE6;
   --lp-surface: #FFFFFF;
-  --lp-surface-soft: #F7F3EE;
-  --lp-border: #E8E0D5;
+  --lp-surface-soft: #FBF8F2;
+  --lp-border: #E8E2D5;
   --lp-border-soft: #F0EAE1;
   --lp-border-strong: #D5C8B8;
-  --lp-text: #251D30;
-  --lp-text-body: #4F455C;
-  --lp-text-muted: #7E738C;
-  --lp-primary: #754F8E;
-  --lp-primary-hover: #603D78;
-  --lp-primary-soft: #F2EBF7;
-  --lp-primary-glow: rgba(117, 79, 142, 0.22);
-  --lp-sage: #4E735D;
-  --lp-sage-soft: #E5EFE8;
-  --lp-gold: #C2862B;
-  --lp-gold-soft: #FCF4E3;
-  --lp-rose: #B55273;
-  --lp-rose-soft: #FCEBF1;
-  --lp-shadow-sm: 0 4px 16px rgba(45, 30, 60, 0.04);
-  --lp-shadow-md: 0 12px 36px rgba(45, 30, 60, 0.07);
-  --lp-shadow-lg: 0 24px 60px rgba(45, 30, 60, 0.1);
-  --lp-nav-bg: rgba(250, 248, 245, 0.85);
-  --lp-foot-bg: #291F36;
-  --lp-foot-text: #F5EDFF;
-  --lp-foot-muted: #B8A8CC;
+  --lp-text: #231E18;
+  --lp-text-body: #4F473E;
+  --lp-text-muted: #7E7569;
+  --lp-forest: #233F31;
+  --lp-forest-deep: #162B1F;
+  --lp-forest-light: #2F5442;
+  --lp-sage: #4E6E59;
+  --lp-sage-soft: #EBF3ED;
+  --lp-moss: #769780;
+  --lp-gold: #C89D42;
+  --lp-gold-soft: #FBF5E8;
+  --lp-card: #FFFFFF;
+  --lp-shadow-sm: 0 4px 16px rgba(45, 35, 20, 0.04);
+  --lp-shadow-md: 0 10px 30px rgba(45, 35, 20, 0.06);
+  --lp-shadow-lg: 0 18px 46px rgba(45, 35, 20, 0.09);
+  --lp-nav-bg: rgba(250, 247, 240, 0.92);
+  --lp-foot-bg: #16241B;
+  --lp-foot-text: #FAF7F0;
+  --lp-foot-muted: #A3B5A8;
+  --fs-editorial: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --fs-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 [data-theme="dark"] {
-  --lp-canvas: #15101E;
-  --lp-canvas-subtle: #1C1527;
-  --lp-surface: #221B2F;
-  --lp-surface-soft: #2B223B;
-  --lp-border: #382D4B;
-  --lp-border-soft: #2E253F;
-  --lp-border-strong: #4F4069;
-  --lp-text: #F8F3FF;
-  --lp-text-body: #D4C9E2;
-  --lp-text-muted: #A396B5;
-  --lp-primary: #C5A3E5;
-  --lp-primary-hover: #D6B9F2;
-  --lp-primary-soft: #2D2140;
-  --lp-primary-glow: rgba(197, 163, 229, 0.28);
-  --lp-sage: #81AFA0;
-  --lp-sage-soft: #1C2E26;
+  --lp-canvas: #151C17;
+  --lp-canvas-subtle: #1C241F;
+  --lp-surface: #1E2822;
+  --lp-surface-soft: #243029;
+  --lp-border: #2E3D34;
+  --lp-border-soft: #27342C;
+  --lp-border-strong: #415549;
+  --lp-text: #F5F2EB;
+  --lp-text-body: #D1CBC0;
+  --lp-text-muted: #9BA49D;
+  --lp-forest: #84C59A;
+  --lp-forest-deep: #5AA574;
+  --lp-forest-light: #9BD2AE;
+  --lp-sage: #7EB892;
+  --lp-sage-soft: #1E2E24;
   --lp-gold: #E5BE72;
-  --lp-gold-soft: #382B18;
-  --lp-rose: #E383A1;
-  --lp-rose-soft: #381C28;
+  --lp-gold-soft: #302816;
+  --lp-card: #1E2822;
   --lp-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.25);
-  --lp-shadow-md: 0 12px 36px rgba(0, 0, 0, 0.35);
-  --lp-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
-  --lp-nav-bg: rgba(21, 16, 30, 0.88);
-  --lp-foot-bg: #120D1A;
-  --lp-foot-text: #F8F3FF;
-  --lp-foot-muted: #A89ABA;
+  --lp-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --lp-shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.45);
+  --lp-nav-bg: rgba(21, 28, 23, 0.92);
+  --lp-foot-bg: #0E1610;
+  --lp-foot-text: #F5F2EB;
+  --lp-foot-muted: #8F9E93;
 }
 
 /* Base landing wrapper */
@@ -489,24 +489,10 @@ details.acc>div{padding:16px}
   z-index: 1;
   background-color: var(--lp-canvas);
   color: var(--lp-text-body);
-  font-family: var(--fs-body, 'Inter', system-ui, sans-serif);
+  font-family: var(--fs-sans);
   line-height: 1.65;
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Subtle background atmospheric ambient light */
-.lp::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background: radial-gradient(ellipse at 50% -20%, var(--lp-primary-soft) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.8;
 }
 
 /* --- Navigation Bar --- */
@@ -514,70 +500,73 @@ details.acc>div{padding:16px}
   position: sticky;
   top: 0;
   z-index: 120;
-  background: transparent;
-  padding: 16px 28px;
-  transition: padding 0.35s ease, background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
-}
-.lp-nav.scrolled {
   background: var(--lp-nav-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  padding: 11px 28px;
+  padding: 10px 24px;
   border-bottom: 1px solid var(--lp-border-soft);
+  transition: padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+.lp-nav.scrolled {
+  padding: 8px 24px;
   box-shadow: var(--lp-shadow-sm);
 }
 .lp-nav-container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
 }
 .lp-brand-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: var(--lp-text);
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
+  flex-shrink: 0;
+}
+.lp-official-logos {
+  height: 44px;
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.lp-brand-text-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.lp-brand-title {
+  font-family: var(--fs-editorial);
+  font-size: 1.05rem;
   font-weight: 700;
-  font-size: 0.98rem;
+  color: var(--lp-text);
   letter-spacing: -0.01em;
 }
-.lp-brand-emblem {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--lp-primary-soft);
-  display: grid;
-  place-items: center;
-  color: var(--lp-primary);
-  font-size: 1.1rem;
-  box-shadow: inset 0 0 0 1px var(--lp-border-soft);
-}
 .lp-brand-tag {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--lp-text-muted);
-  display: block;
 }
 .lp-nav-menu {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 22px;
 }
 .lp-nav-links {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 20px;
 }
 .lp-nav-link {
   color: var(--lp-text-body);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
   padding: 6px 2px;
@@ -585,46 +574,42 @@ details.acc>div{padding:16px}
   transition: color 0.2s ease;
 }
 .lp-nav-link:hover, .lp-nav-link:focus-visible {
-  color: var(--lp-primary);
+  color: var(--lp-forest);
 }
-.lp-nav-link::after {
+.lp-nav-link.active::after, .lp-nav-link:hover::after {
   content: "";
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 0%;
-  height: 2px;
-  background: var(--lp-primary);
-  border-radius: 2px;
-  transition: width 0.25s ease;
-}
-.lp-nav-link:hover::after {
   width: 100%;
+  height: 2px;
+  background: var(--lp-forest);
+  border-radius: 2px;
 }
 .lp-nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .lp-btn-cta-nav {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 9px 20px;
   border-radius: 999px;
-  background: var(--lp-primary);
+  background: var(--lp-forest);
   color: #FFFFFF !important;
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.85rem;
+  font-family: var(--fs-sans);
+  font-size: 0.84rem;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 4px 14px var(--lp-primary-glow);
+  box-shadow: 0 4px 14px rgba(35, 63, 49, 0.22);
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .lp-btn-cta-nav:hover {
   transform: translateY(-1px);
-  background: var(--lp-primary-hover);
-  box-shadow: 0 6px 18px var(--lp-primary-glow);
+  background: var(--lp-forest-light);
+  box-shadow: 0 6px 18px rgba(35, 63, 49, 0.3);
 }
 .lp-burger {
   display: none;
@@ -640,80 +625,105 @@ details.acc>div{padding:16px}
   justify-content: center;
 }
 
-/* --- Hero Section --- */
-.lp-hero-editorial {
-  max-width: 1200px;
-  margin: 20px auto 40px;
-  padding: 40px 28px 60px;
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+/* --- Fullscreen Hero Section --- */
+.lp-hero-fullscreen {
+  position: relative;
+  min-height: 100svh;
+  min-height: 100dvh;
+  display: flex;
   align-items: center;
-  gap: 50px;
-  position: relative;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding: 40px 0 80px;
 }
-.hero-content {
-  position: relative;
+.hero-video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--hero-pos, 68% 46%);
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.hero-scrim {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    var(--lp-canvas) 0%,
+    rgba(250, 247, 240, 0.96) 38%,
+    rgba(250, 247, 240, 0.72) 54%,
+    rgba(250, 247, 240, 0.2) 74%,
+    transparent 90%);
+}
+[data-theme="dark"] .hero-scrim {
+  background: linear-gradient(90deg,
+    var(--lp-canvas) 0%,
+    rgba(21, 28, 23, 0.96) 38%,
+    rgba(21, 28, 23, 0.72) 54%,
+    rgba(21, 28, 23, 0.2) 74%,
+    transparent 90%);
+}
+
+.hero-container {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+}
+.hero-editorial-col {
+  max-width: 650px;
 }
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 14px;
+  padding: 6px 16px;
   border-radius: 999px;
-  background: var(--lp-primary-soft);
-  border: 1px solid var(--lp-border-soft);
-  color: var(--lp-primary);
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--lp-border);
+  color: var(--lp-forest);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
-.hero-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--lp-gold);
-  box-shadow: 0 0 8px var(--lp-gold);
-  animation: pulseDot 2s infinite ease-in-out;
+[data-theme="dark"] .hero-eyebrow {
+  background: rgba(30, 40, 34, 0.88);
 }
-@keyframes pulseDot {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.3); opacity: 1; }
+.hero-eyebrow-star {
+  color: var(--lp-gold);
+  font-size: 0.9rem;
 }
 
 .hero-title {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: clamp(2rem, 3.4vw, 3.1rem);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
+  font-family: var(--fs-editorial);
+  font-size: clamp(2.1rem, 3.6vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
   color: var(--lp-text);
   margin: 0 0 20px;
 }
-.hero-title .hero-hl {
+.hero-title .hl-forest {
   font-weight: 800;
-  color: var(--lp-primary);
-  position: relative;
-  display: inline-block;
-}
-.hero-title .hero-hl::after {
-  content: "";
-  position: absolute;
-  bottom: 2px;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: var(--lp-primary-glow);
-  border-radius: 4px;
-  z-index: -1;
+  color: var(--lp-forest);
 }
 
 .hero-desc {
-  font-size: clamp(1rem, 1.2vw, 1.1rem);
-  line-height: 1.7;
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+  line-height: 1.72;
   color: var(--lp-text-body);
   max-width: 580px;
   margin: 0 0 32px;
@@ -730,49 +740,46 @@ details.acc>div{padding:16px}
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 28px;
+  padding: 13px 28px;
   border-radius: 999px;
-  background: var(--lp-primary);
+  background: var(--lp-forest);
   color: #FFFFFF !important;
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.98rem;
+  font-family: var(--fs-sans);
+  font-size: 0.94rem;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 8px 24px var(--lp-primary-glow);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background 0.2s ease;
+  box-shadow: 0 8px 24px rgba(35, 63, 49, 0.28);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.2s ease;
 }
 .btn-hero-primary:hover {
   transform: translateY(-2px);
-  background: var(--lp-primary-hover);
-  box-shadow: 0 12px 30px var(--lp-primary-glow);
-}
-.btn-hero-primary svg {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.2s ease;
-}
-.btn-hero-primary:hover svg {
-  transform: translateX(4px);
+  background: var(--lp-forest-light);
+  box-shadow: 0 12px 30px rgba(35, 63, 49, 0.36);
 }
 .btn-hero-secondary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 22px;
+  padding: 13px 24px;
   border-radius: 999px;
-  background: var(--lp-surface);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--lp-border);
   color: var(--lp-text);
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.95rem;
+  font-family: var(--fs-sans);
+  font-size: 0.92rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+[data-theme="dark"] .btn-hero-secondary {
+  background: rgba(30, 40, 34, 0.85);
+}
 .btn-hero-secondary:hover {
   background: var(--lp-surface-soft);
-  border-color: var(--lp-primary);
+  border-color: var(--lp-forest);
   transform: translateY(-1px);
 }
 
@@ -781,7 +788,7 @@ details.acc>div{padding:16px}
   align-items: center;
   gap: 18px;
   flex-wrap: wrap;
-  padding-top: 20px;
+  padding-top: 18px;
   border-top: 1px solid var(--lp-border-soft);
 }
 .meta-item {
@@ -795,592 +802,650 @@ details.acc>div{padding:16px}
 .meta-icon {
   width: 15px;
   height: 15px;
-  color: var(--lp-primary);
+  color: var(--lp-forest);
   opacity: 0.85;
 }
 
-/* --- Hero Video Media Frame --- */
-.hero-media-wrap {
-  position: relative;
+/* Floating interactive video controls */
+.hero-center-play {
+  position: absolute;
+  right: 27%;
+  top: 48%;
+  transform: translate(50%, -50%);
+  z-index: 4;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.85);
   display: flex;
-  justify-content: center;
   align-items: center;
-  perspective: 1200px;
+  justify-content: center;
+  color: #1F3A2B;
+  font-size: 1.45rem;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, box-shadow 0.25s ease;
 }
-.hero-arch-card {
-  position: relative;
-  width: 100%;
-  max-width: 440px;
-  aspect-ratio: 4 / 5;
-  border-radius: 200px 200px 32px 32px;
-  padding: 10px;
-  background: linear-gradient(145deg, var(--lp-surface), var(--lp-surface-soft));
-  border: 1px solid var(--lp-border);
-  box-shadow: var(--lp-shadow-lg);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
-  overflow: hidden;
-  will-change: transform;
+.hero-center-play:hover {
+  transform: translate(50%, -50%) scale(1.08);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
 }
-.hero-arch-card.in-view {
-  box-shadow: 0 28px 70px rgba(75, 45, 95, 0.16);
+[data-theme="dark"] .hero-center-play {
+  background: rgba(20, 30, 24, 0.55);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #F5F2EB;
 }
-.video-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 190px 190px 24px 24px;
-  overflow: hidden;
-  background: var(--lp-canvas-subtle);
-}
-.fairy-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  opacity: 0.96;
-  filter: saturate(1.05) contrast(1.02);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-}
-.video-light-sheen {
+
+.hero-video-badge {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 40%, rgba(20,10,30,0.15) 100%);
-  border-radius: inherit;
-}
-.frame-botanical-tag {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.85);
+  right: 32px;
+  bottom: 50px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  color: #342744;
-  padding: 5px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: #262017;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+[data-theme="dark"] .hero-video-badge {
+  background: rgba(20, 30, 24, 0.7);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #F5F2EB;
+}
+.hero-video-badge:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.hero-scroll-badge {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 12px 6px;
   border-radius: 999px;
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.74rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--lp-border-soft);
+  color: var(--lp-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+[data-theme="dark"] .hero-scroll-badge {
+  background: rgba(20, 30, 24, 0.6);
+}
+
+/* Organic Wave Bottom Transition */
+.hero-organic-curve {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 5;
+  pointer-events: none;
+  line-height: 0;
+}
+.hero-organic-curve svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --- Section Layouts --- */
+.lp-section-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 30px 28px 40px;
+}
+
+/* Section: Tentang & Tujuan (2-Column Grid) */
+.tentang-tujuan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 36px;
+  margin-bottom: 36px;
+}
+
+.tentang-editorial-card {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-border);
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow: var(--lp-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-sec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.card-sec-header h2, .card-sec-header h3 {
+  font-family: var(--fs-editorial);
+  font-size: 1.55rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  color: var(--lp-forest);
+  margin: 0;
+}
+.tentang-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.tentang-books-img {
+  width: 125px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(45, 35, 20, 0.12));
+  flex-shrink: 0;
+}
+.tentang-card-text p {
+  font-size: 0.95rem;
+  line-height: 1.68;
+  color: var(--lp-text-body);
+  margin: 0 0 14px;
+}
+.tentang-card-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  pointer-events: none;
-  z-index: 5;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--lp-forest);
+  text-decoration: none;
+  cursor: pointer;
+  transition: gap 0.2s ease;
 }
-[data-theme="dark"] .frame-botanical-tag {
-  background: rgba(30, 22, 42, 0.85);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #F8F3FF;
-}
-.sparkle-star {
-  color: var(--lp-gold);
-  font-size: 0.85rem;
+.tentang-card-link:hover {
+  gap: 10px;
 }
 
-.hero-aura-glow {
-  position: absolute;
-  width: 380px;
-  height: 380px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--lp-primary-glow) 0%, transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: -1;
-  filter: blur(36px);
-  transition: transform 0.4s ease;
-}
-
-/* --- Section: Statistics / Info Strip --- */
-.lp-stats-strip {
-  max-width: 1160px;
-  margin: 0 auto 70px;
-  padding: 0 28px;
-}
-.stats-strip-inner {
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-border-soft);
+.tujuan-editorial-card {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-border);
   border-radius: 24px;
-  padding: 34px 44px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
+  padding: 32px 28px;
   box-shadow: var(--lp-shadow-sm);
-  position: relative;
-}
-.stat-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+}
+.tujuan-pillars-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+  height: 100%;
+}
+.tujuan-pillar-item {
+  background: var(--lp-canvas-subtle);
+  border: 1px solid var(--lp-border-soft);
+  border-radius: 18px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tujuan-pillar-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lp-shadow-sm);
+}
+.tujuan-pillar-node {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--lp-forest);
+  color: #FFFFFF;
+  font-family: var(--fs-sans);
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.tujuan-pillar-desc {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--lp-text-body);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Section: Stats Strip */
+.lp-stats-banner {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-border);
+  border-radius: 24px;
+  padding: 22px 36px;
+  box-shadow: var(--lp-shadow-sm);
+  margin-bottom: 36px;
+}
+.stats-banner-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.stat-banner-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   position: relative;
 }
-.stat-item:not(:last-child)::after {
+.stat-banner-item:not(:last-child)::after {
   content: "";
   position: absolute;
-  right: -15px;
+  right: -10px;
   top: 15%;
   height: 70%;
   width: 1px;
   background: var(--lp-border-soft);
 }
-.stat-num {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: clamp(2.2rem, 3vw, 2.9rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--lp-primary);
-  margin-bottom: 8px;
-}
-.stat-label {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--lp-text);
-  line-height: 1.35;
-  margin-bottom: 4px;
-}
-.stat-sub {
-  font-size: 0.76rem;
-  color: var(--lp-text-muted);
-}
-
-/* --- Standard Editorial Section --- */
-.lp-section {
-  max-width: 1160px;
-  margin: 0 auto 90px;
-  padding: 0 28px;
-  position: relative;
-}
-.section-header-editorial {
-  margin-bottom: 44px;
-}
-.section-eyebrow {
-  display: inline-flex;
+.stat-banner-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--lp-sage-soft);
+  color: var(--lp-forest);
+  display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--lp-primary);
-  margin-bottom: 12px;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
 }
-.section-title {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: var(--lp-text);
-  margin: 0 0 14px;
-}
-.section-subtitle {
-  font-size: 1rem;
-  color: var(--lp-text-muted);
-  max-width: 640px;
-  margin: 0;
-  line-height: 1.65;
-}
-
-/* --- Section: Tentang Penelitian --- */
-.tentang-editorial-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 48px;
-  align-items: center;
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-border-soft);
-  border-radius: 28px;
-  padding: 48px;
-  box-shadow: var(--lp-shadow-sm);
-}
-.tentang-lead-box {
-  border-left: 3px solid var(--lp-primary);
-  padding-left: 28px;
-}
-.tentang-quote {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: clamp(1.2rem, 1.6vw, 1.55rem);
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--lp-text);
-  letter-spacing: -0.015em;
-  margin: 0 0 16px;
-}
-.tentang-quote-cite {
-  font-size: 0.85rem;
-  color: var(--lp-text-muted);
-  font-style: normal;
-}
-.tentang-body-box {
+.stat-banner-info {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  font-size: 0.96rem;
-  line-height: 1.7;
 }
-.pillars-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+.stat-banner-num {
+  font-family: var(--fs-editorial);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--lp-forest);
 }
-.pillar-tag {
-  font-size: 0.78rem;
+.stat-banner-label {
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--lp-primary-soft);
-  color: var(--lp-primary);
+  color: var(--lp-text-muted);
 }
 
-/* --- Section: Tujuan Penelitian --- */
-.tujuan-grid {
+/* Section: Bottom 3 Cards Row (Cara Mengisi, Rahasia, Tim Peneliti) */
+.bottom-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+  grid-template-columns: 1.35fr 1fr 0.95fr;
+  gap: 24px;
+  margin-bottom: 40px;
 }
-.tujuan-item {
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-border-soft);
-  border-radius: 22px;
-  padding: 34px 28px;
+.bottom-card {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-border);
+  border-radius: 24px;
+  padding: 28px 24px;
   box-shadow: var(--lp-shadow-sm);
   display: flex;
   flex-direction: column;
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-.tujuan-item:hover {
-  transform: translateY(-3px);
-  border-color: var(--lp-border-strong);
-}
-.tujuan-num {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: var(--lp-primary);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  margin-bottom: 18px;
-}
-.tujuan-h {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--lp-text);
-  margin: 0 0 10px;
-  line-height: 1.4;
-}
-.tujuan-p {
-  font-size: 0.9rem;
-  color: var(--lp-text-body);
-  line-height: 1.65;
-  margin: 0;
+  position: relative;
 }
 
-/* --- Section: Cara Mengisi (Timeline) --- */
-.timeline-editorial {
-  position: relative;
+/* Card: Cara Mengisi Timeline */
+.timeline-horizontal {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: 12px;
+  position: relative;
+  margin-top: 16px;
 }
-.timeline-editorial::before {
+.timeline-horizontal::before {
   content: "";
   position: absolute;
-  top: 36px;
-  left: 60px;
-  right: 60px;
+  top: 15px;
+  left: 20px;
+  right: 20px;
   height: 2px;
   background: var(--lp-border);
-  z-index: 0;
-}
-.timeline-step {
-  position: relative;
   z-index: 1;
+}
+.timeline-h-step {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-.step-node {
-  width: 44px;
-  height: 44px;
+.step-h-node {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--lp-surface);
-  border: 2px solid var(--lp-primary);
-  display: grid;
-  place-items: center;
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--lp-primary);
-  margin-bottom: 18px;
-  box-shadow: 0 0 0 6px var(--lp-canvas);
-}
-.step-title {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: var(--lp-text);
-  margin: 0 0 8px;
-}
-.step-desc {
-  font-size: 0.86rem;
-  color: var(--lp-text-body);
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* --- Section: Jaminan Kerahasiaan --- */
-.guarantee-box {
-  background: linear-gradient(135deg, var(--lp-surface), var(--lp-surface-soft));
-  border: 1px solid var(--lp-border-soft);
-  border-radius: 24px;
-  padding: 40px 44px;
+  background: var(--lp-forest);
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 32px;
-  box-shadow: var(--lp-shadow-sm);
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 0 0 4px var(--lp-card);
 }
-.guarantee-icon-wrap {
-  width: 68px;
-  height: 68px;
-  border-radius: 18px;
-  background: var(--lp-sage-soft);
-  color: var(--lp-sage);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  font-size: 1.8rem;
-}
-.guarantee-h {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.25rem;
+.step-h-title {
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--lp-text);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
-.guarantee-p {
-  font-size: 0.92rem;
-  color: var(--lp-text-body);
-  line-height: 1.65;
+.step-h-desc {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--lp-text-muted);
   margin: 0;
 }
 
-/* --- Section: Tim Peneliti --- */
-.tim-editorial-card {
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-border-soft);
-  border-radius: 28px;
-  padding: 44px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 36px;
+/* Card: Jaminan Kerahasiaan */
+.rahasia-card {
+  background: var(--lp-card);
+  overflow: hidden;
+}
+.rahasia-card-head {
+  display: flex;
   align-items: center;
-  box-shadow: var(--lp-shadow-sm);
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.tim-emblem {
-  width: 80px;
-  height: 80px;
-  border-radius: 22px;
-  background: var(--lp-primary-soft);
-  border: 1px solid var(--lp-border-soft);
-  display: grid;
-  place-items: center;
-  color: var(--lp-primary);
-  font-size: 2.2rem;
-}
-.tim-info h3 {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
+.rahasia-shield-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--lp-sage-soft);
+  color: var(--lp-forest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
+}
+.rahasia-h {
+  font-family: var(--fs-editorial);
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--lp-text);
-  margin: 0 0 6px;
-}
-.tim-institution {
-  font-size: 0.92rem;
-  color: var(--lp-primary);
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.tim-desc {
-  font-size: 0.88rem;
-  color: var(--lp-text-muted);
-  line-height: 1.6;
   margin: 0;
-  max-width: 580px;
 }
-.tim-cta {
+.rahasia-p {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--lp-text-body);
+  margin: 0 0 10px;
+  max-width: 82%;
+}
+.rahasia-seal-img {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 58px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(45, 35, 20, 0.12));
+}
+
+/* Card: Tim Peneliti */
+.tim-card {
+  justify-content: space-between;
+}
+.tim-profile-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+.tim-avatar-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--lp-canvas-subtle);
+  border: 2px solid var(--lp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--lp-forest);
   flex-shrink: 0;
+}
+.tim-profile-info h4 {
+  font-family: var(--fs-editorial);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--lp-text);
+  margin: 0 0 3px;
+}
+.tim-profile-info p {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--lp-text-muted);
+  margin: 0;
+}
+.tim-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--lp-forest);
+  text-decoration: none;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: gap 0.2s ease;
+}
+.tim-card-link:hover {
+  gap: 10px;
 }
 
 /* --- Footer --- */
 .lp-footer {
   background: var(--lp-foot-bg);
   color: var(--lp-foot-text);
-  padding: 60px 28px 40px;
-  margin-top: 60px;
-  border-top: 1px solid var(--lp-border-soft);
+  padding: 48px 24px 28px;
 }
 .footer-container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
 }
 .footer-top {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-  margin-bottom: 40px;
+  gap: 30px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   flex-wrap: wrap;
 }
-.footer-title {
-  font-family: var(--fs-display, 'Plus Jakarta Sans', sans-serif);
+.footer-brand {
+  max-width: 440px;
+}
+.footer-brand-title {
+  font-family: var(--fs-editorial);
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--lp-foot-text);
-  max-width: 520px;
-  line-height: 1.45;
-  margin: 0 0 10px;
+  color: #FFFFFF;
+  margin: 0 0 6px;
 }
-.footer-sub {
-  font-size: 0.86rem;
+.footer-brand-sub {
+  font-size: 0.8rem;
   color: var(--lp-foot-muted);
+  line-height: 1.5;
   margin: 0;
 }
 .footer-links {
   display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 .footer-link {
-  color: var(--lp-foot-muted);
+  color: #FFFFFF;
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 500;
-  transition: color 0.2s ease;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
 }
 .footer-link:hover {
-  color: #FFFFFF;
+  opacity: 1;
+  text-decoration: underline;
+}
+.footer-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #2D523E;
+  color: #FFFFFF !important;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.footer-cta-btn:hover {
+  background: #3A6850;
 }
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 24px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding-top: 22px;
+  font-size: 0.78rem;
+  color: var(--lp-foot-muted);
   flex-wrap: wrap;
   gap: 16px;
-  font-size: 0.82rem;
-  color: var(--lp-foot-muted);
 }
 .footer-admin-link {
   color: var(--lp-foot-muted);
   text-decoration: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 0.78rem;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 .footer-admin-link:hover {
-  background: rgba(255, 255, 255, 0.14);
   color: #FFFFFF;
 }
 
-/* --- Reveal on Scroll --- */
-.rv {
+/* Modal Dialog for Academic Background & Researcher Info */
+.editorial-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 20, 16, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
-.rv.on {
+.editorial-modal-backdrop.open {
   opacity: 1;
+  pointer-events: auto;
+}
+.editorial-modal-card {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-border);
+  border-radius: 24px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 36px 32px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.editorial-modal-backdrop.open .editorial-modal-card {
   transform: translateY(0);
 }
+.editorial-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--lp-canvas-subtle);
+  border: 1px solid var(--lp-border);
+  color: var(--lp-text);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 
-/* --- Responsive Adjustments --- */
-@media (max-width: 992px) {
-  .lp-hero-editorial {
+/* Responsive Breakpoints & Zoom Scaling */
+@media (max-width: 1080px) {
+  .tentang-tujuan-grid {
     grid-template-columns: 1fr;
-    gap: 40px;
-    padding-top: 20px;
-    text-align: center;
-  }
-  .hero-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .hero-desc {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero-actions {
-    justify-content: center;
-  }
-  .hero-meta {
-    justify-content: center;
-  }
-  .hero-arch-card {
-    max-width: 380px;
-    margin: 0 auto;
-  }
-  .stats-strip-inner {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 28px;
     gap: 24px;
   }
-  .stat-item:nth-child(2)::after {
-    display: none;
-  }
-  .tentang-editorial-grid {
+  .bottom-cards-grid {
     grid-template-columns: 1fr;
-    padding: 34px;
-    gap: 30px;
+    gap: 20px;
   }
-  .tujuan-grid {
-    grid-template-columns: 1fr;
+  .hero-scrim {
+    background: linear-gradient(90deg,
+      var(--lp-canvas) 0%,
+      rgba(250, 247, 240, 0.98) 50%,
+      rgba(250, 247, 240, 0.7) 75%,
+      transparent 95%);
   }
-  .timeline-editorial {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-  }
-  .timeline-editorial::before {
-    display: none;
-  }
-  .tim-editorial-card {
-    grid-template-columns: 1fr;
-    text-align: center;
-    justify-items: center;
+  [data-theme="dark"] .hero-scrim {
+    background: linear-gradient(90deg,
+      var(--lp-canvas) 0%,
+      rgba(21, 28, 23, 0.98) 50%,
+      rgba(21, 28, 23, 0.7) 75%,
+      transparent 95%);
   }
 }
 
-@media (max-width: 680px) {
-  .lp-nav {
-    padding: 12px 18px;
-  }
+@media (max-width: 860px) {
   .lp-nav-links {
     display: none;
     position: absolute;
     top: 100%;
-    left: 18px;
-    right: 18px;
-    background: var(--lp-surface);
-    border: 1px solid var(--lp-border);
-    border-radius: 18px;
-    padding: 20px;
+    left: 0;
+    right: 0;
+    background: var(--lp-nav-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--lp-border);
     flex-direction: column;
-    align-items: stretch;
-    box-shadow: var(--lp-shadow-lg);
+    padding: 16px 24px;
+    gap: 12px;
+    box-shadow: var(--lp-shadow-md);
   }
   .lp-nav-links.open {
     display: flex;
@@ -1388,45 +1453,87 @@ details.acc>div{padding:16px}
   .lp-burger {
     display: flex;
   }
-  .lp-hero-editorial {
-    padding: 15px 18px 40px;
+  .lp-official-logos {
+    height: 34px;
+    max-height: 36px;
   }
-  .hero-arch-card {
-    max-width: 300px;
-    border-radius: 140px 140px 24px 24px;
+  .stats-banner-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
   }
-  .video-container {
-    border-radius: 132px 132px 18px 18px;
+  .stat-banner-item:nth-child(2)::after {
+    display: none;
   }
-  .stats-strip-inner {
+  .tujuan-pillars-row {
     grid-template-columns: 1fr;
-    padding: 24px 20px;
   }
-  .stat-item::after {
+  .timeline-horizontal {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .timeline-horizontal::before {
+    display: none;
+  }
+  .hero-center-play {
+    right: 18px;
+    top: 32px;
+    transform: none;
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+  }
+  .hero-center-play:hover {
+    transform: scale(1.05);
+  }
+  .hero-scroll-badge {
+    display: none;
+  }
+  .hero-scrim {
+    background: linear-gradient(180deg,
+      rgba(250, 247, 240, 0.96) 0%,
+      rgba(250, 247, 240, 0.92) 55%,
+      rgba(250, 247, 240, 0.65) 85%,
+      var(--lp-canvas) 100%);
+  }
+  [data-theme="dark"] .hero-scrim {
+    background: linear-gradient(180deg,
+      rgba(21, 28, 23, 0.96) 0%,
+      rgba(21, 28, 23, 0.92) 55%,
+      rgba(21, 28, 23, 0.65) 85%,
+      var(--lp-canvas) 100%);
+  }
+}
+
+@media (max-width: 540px) {
+  .stats-banner-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-banner-item::after {
     display: none !important;
   }
-  .timeline-editorial {
-    grid-template-columns: 1fr;
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .guarantee-box {
+  .btn-hero-primary, .btn-hero-secondary {
+    justify-content: center;
+  }
+  .tentang-card-inner {
     flex-direction: column;
     text-align: center;
-    padding: 30px 20px;
+  }
+  .tentang-books-img {
+    margin: 0 auto;
+  }
+  .footer-top {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-  .hero-dot {
-    animation: none !important;
-  }
-  .hero-arch-card, .btn-hero-primary, .fairy-video {
-    transition: none !important;
-  }
+  .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .btn-hero-primary, .hero-center-play { transition: none !important; }
 }
 
 
@@ -3047,26 +3154,31 @@ window.addEventListener("hashchange",route);
 
 function renderLanding(el){
   document.title = "Pengaruh Keadilan Kebijakan — Kuesioner Penelitian Seruyan";
-  if(el.dataset.view==="landing") return;   // jangan render ulang saat anchor internal
+  if(el.dataset.view==="landing") return;
   el.dataset.view="landing";
+
   el.innerHTML = `
   ${SUPA_SIAP?"":`<div class="cfgwarn no-print">⚠️ ${esc(PESAN_CONFIG_KURANG)} Situs berjalan dalam mode pratinjau lokal — data tidak permanen dan tidak lintas perangkat.</div>`}
   <div class="lp">
 
-  <!-- ==================== 1. NAVBAR ==================== -->
+  <!-- ==================== 1. TOP NAVBAR ==================== -->
   <nav class="lp-nav" aria-label="Navigasi utama">
     <div class="lp-nav-container">
       <a class="lp-brand-link" href="#/">
-        <div class="lp-brand-emblem" aria-hidden="true">🌱</div>
-        <div>
-          <span>Riset Mahasiswa</span>
+        <img src="./assets/logo-konsorsium-upr.svg" 
+             alt="Logo Kemendikbud, UPR, ISO 21001, BLU Speed, Zona Integritas" 
+             class="lp-official-logos" 
+             loading="eager"
+              />
+        <div class="lp-brand-text-block">
+          <span class="lp-brand-title">Kuesioner Penelitian</span>
           <span class="lp-brand-tag">UPR · Seruyan 2026</span>
         </div>
       </a>
 
       <div class="lp-nav-menu">
         <div class="lp-nav-links" id="lpLinks">
-          <a class="lp-nav-link" href="#/">Beranda</a>
+          <a class="lp-nav-link active" href="#/">Beranda</a>
           <a class="lp-nav-link" tabindex="0" data-goto="tentang">Tentang</a>
           <a class="lp-nav-link" tabindex="0" data-goto="tujuan">Tujuan</a>
           <a class="lp-nav-link" tabindex="0" data-goto="cara">Cara Mengisi</a>
@@ -3075,7 +3187,7 @@ function renderLanding(el){
         </div>
 
         <div class="lp-nav-actions">
-          <a class="lp-btn-cta-nav" href="#/kuesioner">Mulai Kuesioner →</a>
+          <a class="lp-btn-cta-nav" href="#/kuesioner">Mulai Mengisi Kuesioner →</a>
           ${Tema.tombol()}
           <button class="lp-burger" id="burger" aria-expanded="false" aria-controls="lpLinks" aria-label="Buka menu navigasi">☰</button>
         </div>
@@ -3085,229 +3197,249 @@ function renderLanding(el){
 
   ${ECert.bannerLanding()}
 
-  <!-- ==================== 2. HERO SECTION ==================== -->
-  <header class="lp-hero-editorial">
-    <div class="hero-content rv">
-      <span class="hero-eyebrow">
-        <span class="hero-dot"></span>
-        Kuesioner Penelitian
-      </span>
-      <h1 class="hero-title">
-        Pengaruh <span class="hero-hl">Keadilan Kebijakan</span> terhadap Sikap Mahasiswa atas Perluasan <span class="hero-hl">Akses Koperasi</span> Perkebunan Sawit di Kabupaten Seruyan
-      </h1>
-      <p class="hero-desc">
-        Kajian akademik mahasiswa Universitas Palangka Raya untuk mengidentifikasi persepsi keadilan prosedural, kesetaraan kesempatan, keadilan distribusi manfaat, dan mitigasi risiko atas kebijakan kemitraan kelapa sawit di Kabupaten Seruyan.
-      </p>
+  <!-- ==================== 2. FULLSCREEN HERO ==================== -->
+  <header class="lp-hero-fullscreen">
+    <!-- Fairy Video & Fallback Poster Background -->
+    <video id="heroFairyVideo"
+           autoplay
+           muted
+           loop
+           playsinline
+           preload="auto"
+           poster="./assets/fairy-poster.webp"
+           class="hero-video-bg">
+      <source src="./assets/fairy-video.mp4" type="video/mp4">
+      <source src="./assets/Animate_fairy_flying_loop_1080p_20261008013043.mp4" type="video/mp4">
+      Browser Anda tidak mendukung video HTML5.
+    </video>
 
-      <div class="hero-actions">
-        <a class="btn-hero-primary" href="#/kuesioner">
-          <span>Mulai Mengisi Kuesioner</span>
-          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m-5-5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <a class="btn-hero-secondary" tabindex="0" data-goto="cara">
-          <span>Lihat Petunjuk</span>
-        </a>
-      </div>
+    <!-- Soft Scrim Overlay ensuring text contrast -->
+    <div class="hero-scrim" aria-hidden="true"></div>
 
-      <div class="hero-meta">
-        <span class="meta-item">
-          <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          ±10–15 Menit Pengerjaan
-        </span>
-        <span class="meta-item">
-          <svg class="meta-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M6 2v12M2 6h12"/></svg>
-          42 Butir Instrumen
-        </span>
-        <span class="meta-item">
-          <svg class="meta-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="10" height="8" rx="1.5"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
-          Anonim & Terlindungi
-        </span>
+    <!-- Hero Content Left -->
+    <div class="hero-container">
+      <div class="hero-editorial-col rv">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-star">✦</span>
+          <span>KUESIONER PENELITIAN</span>
+        </div>
+
+        <h1 class="hero-title">
+          Pengaruh <span class="hl-forest">Keadilan Kebijakan</span> terhadap Sikap <span class="hl-forest">Mahasiswa</span> atas <span class="hl-forest">Perluasan Akses Koperasi</span> Perkebunan Sawit di <span class="hl-forest">Kabupaten Seruyan</span>
+        </h1>
+
+        <p class="hero-desc">
+          Partisipasi Anda sangat berarti untuk mendukung penelitian mengenai keadilan kebijakan dan sikap mahasiswa terhadap perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn-hero-primary" href="#/kuesioner">
+            <span>🌿 Mulai Mengisi Kuesioner →</span>
+          </a>
+          <a class="btn-hero-secondary" tabindex="0" data-goto="cara">
+            <span>⚪ Lihat Petunjuk</span>
+          </a>
+        </div>
+
+        <div class="hero-meta">
+          <span class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            ±10–15 Menit Pengerjaan
+          </span>
+          <span class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M6 2v12M2 6h12"/></svg>
+            42 Butir Instrumen
+          </span>
+          <span class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="10" height="8" rx="1.5"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
+            Anonim & Terlindungi
+          </span>
+        </div>
       </div>
     </div>
 
-    <div class="hero-media-wrap rv">
-      <div class="hero-arch-card" id="heroVideoCard">
-        <div class="video-container">
-          <video id="heroFairyVideo"
-                 autoplay
-                 muted
-                 loop
-                 playsinline
-                 preload="metadata"
-                 poster="assets/fairy-poster.svg"
-                 class="fairy-video">
-            <source src="assets/fairy-video.mp4" type="video/mp4">
-            <source src="assets/Animate_fairy_flying_loop_1080p_20261008013043.mp4" type="video/mp4">
-            Browser Anda tidak mendukung elemen video.
-          </video>
-          <div class="video-light-sheen" aria-hidden="true"></div>
-        </div>
-        <div class="frame-botanical-tag" aria-hidden="true">
-          <span class="sparkle-star">✦</span>
-          <span>Seruyan Study 2026</span>
-        </div>
-      </div>
-      <div class="hero-aura-glow" aria-hidden="true"></div>
+    <!-- Centered Play/Pause Button on Fairy Artwork -->
+    <button class="hero-center-play" id="heroCenterPlay" aria-label="Putar atau jeda animasi video peri">
+      <span id="centerPlayIcon">⏸</span>
+    </button>
+
+    <!-- Bottom Right Video Mute/Play Indicator -->
+    <button class="hero-video-badge" id="heroBadgeBtn" aria-label="Kontrol audio dan video">
+      <span id="badgePlayText">Putar Video</span>
+      <span id="badgeSoundIcon">🔊</span>
+    </button>
+
+    <!-- Right Margin Scroll Indicator -->
+    <div class="hero-scroll-badge" aria-hidden="true">
+      <span>Scroll ↓</span>
+    </div>
+
+    <!-- Organic Wave Bottom Transition Divider -->
+    <div class="hero-organic-curve" aria-hidden="true">
+      <svg viewBox="0 0 1440 85" preserveAspectRatio="none">
+        <path d="M0,45 C320,80 540,10 880,50 C1140,80 1340,30 1440,55 L1440,85 L0,85 Z" fill="var(--lp-canvas)"></path>
+      </svg>
     </div>
   </header>
 
-  <!-- ==================== 3. EDITORIAL STATS STRIP ==================== -->
-  <section class="lp-stats-strip rv">
-    <div class="stats-strip-inner">
-      <div class="stat-item">
-        <span class="stat-num">42</span>
-        <span class="stat-label">Item Instrumen</span>
-        <span class="stat-sub">Total butir evaluasi kuesioner</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">29</span>
-        <span class="stat-label">Pernyataan Likert</span>
-        <span class="stat-sub">19 Variabel X & 10 Variabel Y</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">10</span>
-        <span class="stat-label">Profil Responden</span>
-        <span class="stat-sub">Demografi tanpa data sensitif</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">3</span>
-        <span class="stat-label">Pertanyaan Reflektif</span>
-        <span class="stat-sub">1 pilihan ganda & 2 uraian solutif</span>
-      </div>
-    </div>
-  </section>
+  <div class="lp-section-wrap">
 
-  <!-- ==================== 4. TENTANG PENELITIAN ==================== -->
-  <section class="lp-section" id="tentang">
-    <div class="section-header-editorial rv">
-      <span class="section-eyebrow">✦ Latar Belakang</span>
-      <h2 class="section-title">Tentang Penelitian</h2>
-      <p class="section-subtitle">Membedah dinamika kemitraan perkebunan sawit dan kebun plasma masyarakat di Kabupaten Seruyan melalui lensa keadilan kebijakan.</p>
-    </div>
+    <!-- ==================== 3. TENTANG & TUJUAN SECTION ==================== -->
+    <section class="tentang-tujuan-grid">
+      <!-- Left Card: Tentang Penelitian -->
+      <article class="tentang-editorial-card rv" id="tentang">
+        <div>
+          <div class="card-sec-header">
+            <span>🌿</span>
+            <h2>Tentang Penelitian</h2>
+            <span>🌿</span>
+          </div>
+          <div class="tentang-card-inner">
+            <img src="./assets/tentang-books.webp" alt="Ilustrasi Buku Penelitian dan Tinta" class="tentang-books-img" loading="lazy" />
+            <div class="tentang-card-text">
+              <p>Penelitian ini menganalisis bagaimana mahasiswa menilai keadilan kebijakan, serta bagaimana sikap mereka terhadap perluasan akses koperasi dalam kegiatan perkebunan sawit di Kabupaten Seruyan.</p>
+              <a class="tentang-card-link" id="btnBukaTentang">
+                <span>Selengkapnya →</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
 
-    <div class="tentang-editorial-grid rv">
-      <div class="tentang-lead-box">
-        <blockquote class="tentang-quote">
-          “Menelaah bagaimana keadilan kebijakan dirasakan dan dinilai oleh mahasiswa di jantung dinamika perkebunan kelapa sawit Kabupaten Seruyan.”
-        </blockquote>
-        <cite class="tentang-quote-cite">— Tim Peneliti Ilmu Administrasi Negara, FISIP UPR</cite>
-      </div>
+      <!-- Right Card: Tujuan Penelitian -->
+      <article class="tujuan-editorial-card rv" id="tujuan">
+        <div class="card-sec-header">
+          <span>🎯</span>
+          <h3>Tujuan Penelitian</h3>
+        </div>
+        <div class="tujuan-pillars-row">
+          <div class="tujuan-pillar-item">
+            <div class="tujuan-pillar-node">01</div>
+            <p class="tujuan-pillar-desc">Mengukur persepsi mahasiswa terkait keadilan kebijakan</p>
+          </div>
+          <div class="tujuan-pillar-item">
+            <div class="tujuan-pillar-node">02</div>
+            <p class="tujuan-pillar-desc">Menganalisis sikap mahasiswa terhadap perluasan akses koperasi</p>
+          </div>
+          <div class="tujuan-pillar-item">
+            <div class="tujuan-pillar-node">03</div>
+            <p class="tujuan-pillar-desc">Melihat hubungan antara keadilan kebijakan dan sikap mahasiswa</p>
+          </div>
+        </div>
+      </article>
+    </section>
 
-      <div class="tentang-body-box">
-        <p>Pada Maret 2026, ditandatangani kesepakatan plasma 20% antara PT Rim Capital dengan koperasi masyarakat di Kabupaten Seruyan. Namun dinamika tuntutan realisasi hak plasma serta tata kelola koperasi terus bergulir di Desa Tanjung Rangas dan Pematang Limau.</p>
-        <p>Penelitian ini memetakan empat dimensi keadilan kebijakan:</p>
-        <div class="pillars-tags">
-          <span class="pillar-tag">1. Keadilan Prosedural</span>
-          <span class="pillar-tag">2. Keadilan Kesempatan</span>
-          <span class="pillar-tag">3. Keadilan Distribusi Manfaat</span>
-          <span class="pillar-tag">4. Keadilan Konsekuensi & Risiko</span>
+    <!-- ==================== 4. EDITORIAL STATS STRIP ==================== -->
+    <section class="lp-stats-banner rv">
+      <div class="stats-banner-grid">
+        <div class="stat-banner-item">
+          <div class="stat-banner-icon">📓</div>
+          <div class="stat-banner-info">
+            <span class="stat-banner-num">42</span>
+            <span class="stat-banner-label">Total Item Kuesioner</span>
+          </div>
+        </div>
+
+        <div class="stat-banner-item">
+          <div class="stat-banner-icon">📋</div>
+          <div class="stat-banner-info">
+            <span class="stat-banner-num">29</span>
+            <span class="stat-banner-label">Pernyataan Likert</span>
+          </div>
+        </div>
+
+        <div class="stat-banner-item">
+          <div class="stat-banner-icon">👤</div>
+          <div class="stat-banner-info">
+            <span class="stat-banner-num">10</span>
+            <span class="stat-banner-label">Identitas Responden</span>
+          </div>
+        </div>
+
+        <div class="stat-banner-item">
+          <div class="stat-banner-icon">💬</div>
+          <div class="stat-banner-info">
+            <span class="stat-banner-num">3</span>
+            <span class="stat-banner-label">Pertanyaan Reflektif</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ==================== 5. TUJUAN PENELITIAN ==================== -->
-  <section class="lp-section" id="tujuan">
-    <div class="section-header-editorial rv">
-      <span class="section-eyebrow">✦ Fokus Akademik</span>
-      <h2 class="section-title">Tujuan Penelitian</h2>
-      <p class="section-subtitle">Tiga pilar tujuan riset yang menjadi arah pengumpulan data dan analisis statistik.</p>
-    </div>
+    <!-- ==================== 5. CARA MENGISI, RAHASIA, TIM PENELITI ==================== -->
+    <section class="bottom-cards-grid">
+      <!-- Card 1: Cara Mengisi -->
+      <article class="bottom-card rv" id="cara">
+        <div class="card-sec-header">
+          <span>🌿</span>
+          <h3>Cara Mengisi</h3>
+        </div>
+        <div class="timeline-horizontal">
+          <div class="timeline-h-step">
+            <div class="step-h-node">1</div>
+            <h4 class="step-h-title">Isi Identitas</h4>
+            <p class="step-h-desc">Lengkapi data diri Anda</p>
+          </div>
+          <div class="timeline-h-step">
+            <div class="step-h-node">2</div>
+            <h4 class="step-h-title">Baca Studi Kasus</h4>
+            <p class="step-h-desc">Pahami informasi yang diberikan</p>
+          </div>
+          <div class="timeline-h-step">
+            <div class="step-h-node">3</div>
+            <h4 class="step-h-title">Pilih Jawaban</h4>
+            <p class="step-h-desc">Berikan penilaian sesuai pendapat Anda</p>
+          </div>
+          <div class="timeline-h-step">
+            <div class="step-h-node">4</div>
+            <h4 class="step-h-title">Kirim Kuesioner</h4>
+            <p class="step-h-desc">Pastikan semua terisi lalu submit</p>
+          </div>
+        </div>
+      </article>
 
-    <div class="tujuan-grid">
-      <div class="tujuan-item rv">
-        <span class="tujuan-num">01</span>
-        <h3 class="tujuan-h">Mengukur Persepsi Keadilan Kebijakan</h3>
-        <p class="tujuan-p">Mengetahui sejauh mana mahasiswa menilai keterbukaan informasi, kesetaraan akses koperasi lokal, kepastian pembagian hasil usaha, serta perlindungan dampak lingkungan perkebunan sawit di Seruyan.</p>
-      </div>
+      <!-- Card 2: Jawaban Bersifat Rahasia -->
+      <article class="bottom-card rahasia-card rv" id="privasi">
+        <div class="rahasia-card-head">
+          <div class="rahasia-shield-icon">🛡️</div>
+          <h3 class="rahasia-h">Jawaban Anda bersifat rahasia.</h3>
+        </div>
+        <p class="rahasia-p">Seluruh data yang Anda berikan hanya digunakan untuk kepentingan penelitian dan tidak akan disebarluaskan.</p>
+        <img src="./assets/envelope-seal.webp" alt="Segel Kerahasiaan Surat" class="rahasia-seal-img" loading="lazy" />
+      </article>
 
-      <div class="tujuan-item rv">
-        <span class="tujuan-num">02</span>
-        <h3 class="tujuan-h">Menganalisis Sikap Mahasiswa</h3>
-        <p class="tujuan-p">Mengidentifikasi bentuk penilaian kognitif, tingkat penerimaan afektif, dan komitmen dukungan konatif mahasiswa atas keberlanjutan perluasan akses koperasi perkebunan sawit.</p>
-      </div>
+      <!-- Card 3: Tim Peneliti -->
+      <article class="bottom-card tim-card rv" id="tim">
+        <div>
+          <div class="card-sec-header">
+            <span>🌿</span>
+            <h3>Tim Peneliti</h3>
+          </div>
+          <div class="tim-profile-box">
+            <div class="tim-avatar-circle">🎓</div>
+            <div class="tim-profile-info">
+              <h4>Tim Peneliti Mahasiswa</h4>
+              <p>Program Studi Ilmu Administrasi Negara<br>FISIP, Universitas Palangka Raya</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <a class="tim-card-link" id="btnBukaTim">
+            <span>Lihat Selengkapnya →</span>
+          </a>
+        </div>
+      </article>
+    </section>
 
-      <div class="tujuan-item rv">
-        <span class="tujuan-num">03</span>
-        <h3 class="tujuan-h">Menganalisis Hubungan & Pengaruh</h3>
-        <p class="tujuan-p">Membuktikan secara empiris besaran pengaruh keadilan kebijakan (Variabel X) terhadap sikap mahasiswa (Variabel Y) sebagai rujukan formulasi rekomendasi kebijakan publik.</p>
-      </div>
-    </div>
-  </section>
+  </div><!-- /.lp-section-wrap -->
 
-  <!-- ==================== 6. CARA MENGISI ==================== -->
-  <section class="lp-section" id="cara">
-    <div class="section-header-editorial rv">
-      <span class="section-eyebrow">✦ Panduan Partisipasi</span>
-      <h2 class="section-title">Alur Pengisian Kuesioner</h2>
-      <p class="section-subtitle">Empat tahapan terstruktur yang dirancang nyaman, cepat, dan otomatis menyimpan kemajuan Anda.</p>
-    </div>
-
-    <div class="timeline-editorial rv">
-      <div class="timeline-step">
-        <div class="step-node">01</div>
-        <h3 class="step-title">Isi Data Identitas</h3>
-        <p class="step-desc">Lengkapi 10 item demografi (perguruan tinggi, program studi, semester, domisili, info koperasi) tanpa data sensitif.</p>
-      </div>
-
-      <div class="timeline-step">
-        <div class="step-node">02</div>
-        <h3 class="step-title">Cermati Studi Kasus</h3>
-        <p class="step-desc">Pahami konteks faktual kemitraan sawit Seruyan pada setiap bagian sebelum mengisi butir pernyataan.</p>
-      </div>
-
-      <div class="timeline-step">
-        <div class="step-node">03</div>
-        <h3 class="step-title">Tentukan Skala Sikap</h3>
-        <p class="step-desc">Pilih 1 dari 5 skala Likert (Sangat Tidak Setuju hingga Sangat Setuju) sesuai penilaian objektif Anda.</p>
-      </div>
-
-      <div class="timeline-step">
-        <div class="step-node">04</div>
-        <h3 class="step-title">Kirim & Klaim Sertifikat</h3>
-        <p class="step-desc">Kirim jawaban dengan aman. Anda akan langsung memperoleh E-Sertifikat partisipasi resmi ber-QR Code.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== 7. JAMINAN KERAHASIAAN ==================== -->
-  <section class="lp-section" id="privasi">
-    <div class="guarantee-box rv">
-      <div class="guarantee-icon-wrap" aria-hidden="true">
-        🛡️
-      </div>
-      <div>
-        <h3 class="guarantee-h">Jawaban Anda Bersifat Rahasia dan Terlindungi</h3>
-        <p class="guarantee-p">Kuesioner ini dirancang dengan prinsip etika penelitian akademik penuh. Kami tidak memungut nama lengkap, Nomor Induk Mahasiswa (NIM), nomor telepon, atau alamat email. Seluruh respon dienkripsi menggunakan token acak dan hanya dianalisis secara agregat untuk keperluan penelitian ilmiah pada Program Studi Ilmu Administrasi Negara FISIP Universitas Palangka Raya.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== 8. TIM PENELITI ==================== -->
-  <section class="lp-section" id="tim">
-    <div class="tim-editorial-card rv">
-      <div class="tim-emblem" aria-hidden="true">🏛️</div>
-      <div class="tim-info">
-        <h3>Tim Peneliti Mahasiswa</h3>
-        <div class="tim-institution">Program Studi Ilmu Administrasi Negara · FISIP · Universitas Palangka Raya</div>
-        <p class="tim-desc">Fokus riset berorientasi pada evaluasi kebijakan publik, kemitraan ekonomi masyarakat, dan tata kelola perluasan akses koperasi perkebunan kelapa sawit di Kabupaten Seruyan, Kalimantan Tengah.</p>
-      </div>
-      <div class="tim-cta">
-        <a class="btn-hero-primary" href="#/kuesioner">
-          <span>Isi Kuesioner Sekarang</span>
-          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m-5-5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== 9. FOOTER ==================== -->
+  <!-- ==================== 6. FOOTER ==================== -->
   <footer class="lp-footer">
     <div class="footer-container">
       <div class="footer-top">
-        <div>
-          <h3 class="footer-title">PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN</h3>
-          <p class="footer-sub">${esc(CONFIG.INSTITUSI)} · Fakultas Ilmu Sosial dan Ilmu Politik</p>
+        <div class="footer-brand">
+          <h3 class="footer-brand-title">Kuesioner Penelitian</h3>
+          <p class="footer-brand-sub">Pengaruh Keadilan Kebijakan terhadap Sikap Mahasiswa atas Perluasan Akses Koperasi Perkebunan Sawit di Kabupaten Seruyan</p>
         </div>
 
         <div class="footer-links">
@@ -3318,16 +3450,67 @@ function renderLanding(el){
           <a class="footer-link" tabindex="0" data-goto="tim">Tim Peneliti</a>
           <a class="footer-link" href="#/certificate">E-Sertifikat</a>
         </div>
+
+        <div>
+          <a class="footer-cta-btn" href="#/kuesioner">Mulai Mengisi Kuesioner →</a>
+        </div>
       </div>
 
       <div class="footer-bottom">
-        <span>© 2026 Tim Peneliti Mahasiswa Universitas Palangka Raya. Seluruh hak cipta dilindungi.</span>
+        <span>© 2026. Penelitian ini dibuat untuk kepentingan akademik.</span>
         <div>
+          <span>Bersama untuk Penelitian yang Lebih Baik 🕊️ · </span>
           <a class="footer-admin-link" href="#/admin">Portal Admin / Pengelola Riset 🔒</a>
         </div>
       </div>
     </div>
   </footer>
+
+  <!-- Modal Tentang Penelitian -->
+  <div class="editorial-modal-backdrop" id="modalTentang" role="dialog" aria-modal="true" aria-labelledby="modalTentangTitle">
+    <div class="editorial-modal-card">
+      <button class="editorial-modal-close" id="modalTentangTutup" aria-label="Tutup dialog">✕</button>
+      <h3 id="modalTentangTitle" style="font-family:var(--fs-editorial);font-size:1.6rem;color:var(--lp-forest);margin:0 0 16px">Latar Belakang & 4 Dimensi Keadilan Kebijakan</h3>
+      <p style="font-size:0.95rem;line-height:1.7;color:var(--lp-text-body);margin-bottom:14px">Pada Maret 2026, ditandatangani kesepakatan plasma 20% antara PT Rim Capital dengan koperasi masyarakat di Kabupaten Seruyan. Namun dinamika tuntutan realisasi hak plasma serta tata kelola koperasi terus bergulir di Desa Tanjung Rangas dan Pematang Limau.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0">
+        <div style="background:var(--lp-canvas-subtle);padding:14px;border-radius:12px;border:1px solid var(--lp-border-soft)">
+          <strong style="color:var(--lp-forest)">1. Keadilan Prosedural</strong>
+          <p style="font-size:0.84rem;margin:4px 0 0;color:var(--lp-text-muted)">Keterbukaan informasi dan kejelasan tahapan pelaksanaan kebijakan.</p>
+        </div>
+        <div style="background:var(--lp-canvas-subtle);padding:14px;border-radius:12px;border:1px solid var(--lp-border-soft)">
+          <strong style="color:var(--lp-forest)">2. Keadilan Kesempatan</strong>
+          <p style="font-size:0.84rem;margin:4px 0 0;color:var(--lp-text-muted)">Kesetaraan akses dan kesempatan koperasi masyarakat lokal.</p>
+        </div>
+        <div style="background:var(--lp-canvas-subtle);padding:14px;border-radius:12px;border:1px solid var(--lp-border-soft)">
+          <strong style="color:var(--lp-forest)">3. Keadilan Distribusi Manfaat</strong>
+          <p style="font-size:0.84rem;margin:4px 0 0;color:var(--lp-text-muted)">Kepastian realisasi hasil kebun plasma yang diterima anggota.</p>
+        </div>
+        <div style="background:var(--lp-canvas-subtle);padding:14px;border-radius:12px;border:1px solid var(--lp-border-soft)">
+          <strong style="color:var(--lp-forest)">4. Keadilan Konsekuensi & Risiko</strong>
+          <p style="font-size:0.84rem;margin:4px 0 0;color:var(--lp-text-muted)">Tanggung jawab sosial dan mitigasi risiko dampak lingkungan.</p>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:20px">
+        <a class="btn-hero-primary" href="#/kuesioner" style="padding:10px 22px;font-size:0.88rem">Isi Kuesioner Sekarang →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tim Peneliti -->
+  <div class="editorial-modal-backdrop" id="modalTim" role="dialog" aria-modal="true" aria-labelledby="modalTimTitle">
+    <div class="editorial-modal-card">
+      <button class="editorial-modal-close" id="modalTimTutup" aria-label="Tutup dialog">✕</button>
+      <h3 id="modalTimTitle" style="font-family:var(--fs-editorial);font-size:1.6rem;color:var(--lp-forest);margin:0 0 14px">Tim Peneliti Mahasiswa</h3>
+      <p style="font-size:0.95rem;line-height:1.7;color:var(--lp-text-body);margin-bottom:12px">Penelitian ini dilaksanakan oleh mahasiswa Program Studi Ilmu Administrasi Negara, Fakultas Ilmu Sosial dan Ilmu Politik, Universitas Palangka Raya (UPR).</p>
+      <div style="background:var(--lp-canvas-subtle);padding:18px;border-radius:16px;border:1px solid var(--lp-border-soft);margin-bottom:16px">
+        <p style="margin:0 0 8px"><strong>Institusi:</strong> Universitas Palangka Raya (UPR)</p>
+        <p style="margin:0 0 8px"><strong>Fakultas:</strong> Fakultas Ilmu Sosial dan Ilmu Politik (FISIP)</p>
+        <p style="margin:0 0 8px"><strong>Program Studi:</strong> S1 Ilmu Administrasi Negara</p>
+        <p style="margin:0"><strong>Wilayah Riset:</strong> Kabupaten Seruyan, Provinsi Kalimantan Tengah</p>
+      </div>
+      <p style="font-size:0.88rem;color:var(--lp-text-muted);line-height:1.6">Seluruh data yang diperoleh dilindungi dengan standar integritas akademik ketat, tanpa pemungutan identitas pribadi responden, dan murni digunakan untuk formulasi analisis ilmiah.</p>
+    </div>
+  </div>
 
   </div>`;
 
@@ -3363,7 +3546,7 @@ function renderLanding(el){
     };
   });
 
-  // 3. Mount theme buttons
+  // 3. Mount theme toggle
   Tema.pasang(el);
 
   // 4. Navbar shrink and backdrop blur on scroll
@@ -3377,54 +3560,78 @@ function renderLanding(el){
     onScrollNav();
   }
 
-  // 5. Video Viewport IntersectionObserver (Auto Play / Pause on Scroll)
+  // 5. Video Viewport & Playback Controls
   const fairyVideo = $("#heroFairyVideo", el);
-  const videoCard = $("#heroVideoCard", el);
-  if(fairyVideo && window.IntersectionObserver){
-    const videoObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting){
-          if(fairyVideo.paused){
-            fairyVideo.play().catch(() => {});
+  const centerPlayBtn = $("#heroCenterPlay", el);
+  const centerPlayIcon = $("#centerPlayIcon", el);
+  const badgeBtn = $("#heroBadgeBtn", el);
+  const badgePlayText = $("#badgePlayText", el);
+  const badgeSoundIcon = $("#badgeSoundIcon", el);
+
+  if(fairyVideo){
+    const syncPlayState = () => {
+      const isPaused = fairyVideo.paused;
+      if(centerPlayIcon) centerPlayIcon.textContent = isPaused ? "▶" : "⏸";
+      if(badgePlayText) badgePlayText.textContent = isPaused ? "Putar Video" : "Jeda Video";
+    };
+
+    const togglePlay = () => {
+      if(fairyVideo.paused){
+        fairyVideo.play().then(syncPlayState).catch(() => {});
+      } else {
+        fairyVideo.pause();
+        syncPlayState();
+      }
+    };
+
+    if(centerPlayBtn) centerPlayBtn.onclick = togglePlay;
+    if(badgeBtn){
+      badgeBtn.onclick = () => {
+        fairyVideo.muted = !fairyVideo.muted;
+        if(badgeSoundIcon) badgeSoundIcon.textContent = fairyVideo.muted ? "🔇" : "🔊";
+        if(fairyVideo.paused) togglePlay();
+      };
+    }
+
+    fairyVideo.addEventListener("play", syncPlayState);
+    fairyVideo.addEventListener("pause", syncPlayState);
+
+    // Auto-pause video when scrolled off-screen
+    if(window.IntersectionObserver){
+      const videoObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            if(fairyVideo.paused) fairyVideo.play().catch(() => {});
+          } else {
+            if(!fairyVideo.paused) fairyVideo.pause();
           }
-          if(videoCard) videoCard.classList.add("in-view");
-        } else {
-          if(!fairyVideo.paused){
-            fairyVideo.pause();
-          }
-          if(videoCard) videoCard.classList.remove("in-view");
-        }
-      });
-    }, { threshold: 0.35 });
-    videoObserver.observe(fairyVideo);
+        });
+      }, { threshold: 0.2 });
+      videoObserver.observe(fairyVideo);
+    }
   }
 
-  // 6. Subtle Parallax Effect on Hero Card (Desktop fine pointer only)
-  const heroSection = $(".lp-hero-editorial", el);
-  const isFinePointer = matchMedia("(pointer:fine)").matches;
-  const isNotReducedMotion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // 6. Modal Popups for Tentang & Tim
+  const mTentang = $("#modalTentang", el);
+  const btnBukaTentang = $("#btnBukaTentang", el);
+  const btnTutupTentang = $("#modalTentangTutup", el);
+  if(btnBukaTentang && mTentang){
+    btnBukaTentang.onclick = () => mTentang.classList.add("open");
+  }
+  if(btnTutupTentang && mTentang){
+    btnTutupTentang.onclick = () => mTentang.classList.remove("open");
+    mTentang.onclick = e => { if(e.target === mTentang) mTentang.classList.remove("open"); };
+  }
 
-  if(heroSection && videoCard && isFinePointer && isNotReducedMotion){
-    let heroRaf = null;
-    heroSection.addEventListener("mousemove", e => {
-      const r = heroSection.getBoundingClientRect();
-      const tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      const ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      if(heroRaf) return;
-      heroRaf = requestAnimationFrame(() => {
-        heroRaf = null;
-        videoCard.style.transform = `perspective(1000px) rotateY(${tx * 3.5}deg) rotateX(${-ty * 3.5}deg) translateZ(6px)`;
-        const aura = $(".hero-aura-glow", heroSection);
-        if(aura){
-          aura.style.transform = `translate(calc(-50% + ${tx * 15}px), calc(-50% + ${ty * 15}px))`;
-        }
-      });
-    });
-    heroSection.addEventListener("mouseleave", () => {
-      videoCard.style.transform = "none";
-      const aura = $(".hero-aura-glow", heroSection);
-      if(aura) aura.style.transform = "translate(-50%, -50%)";
-    });
+  const mTim = $("#modalTim", el);
+  const btnBukaTim = $("#btnBukaTim", el);
+  const btnTutupTim = $("#modalTimTutup", el);
+  if(btnBukaTim && mTim){
+    btnBukaTim.onclick = () => mTim.classList.add("open");
+  }
+  if(btnTutupTim && mTim){
+    btnTutupTim.onclick = () => mTim.classList.remove("open");
+    mTim.onclick = e => { if(e.target === mTim) mTim.classList.remove("open"); };
   }
 
   // 7. Scroll reveal observer for elements with .rv
@@ -3435,19 +3642,16 @@ function renderLanding(el){
     const revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
         if(!entry.isIntersecting) return;
-        const parent = entry.target.parentElement;
-        const siblings = parent ? [...parent.children].filter(c => c.classList.contains("rv")) : [];
-        const idx = Math.max(0, siblings.indexOf(entry.target));
-        entry.target.style.transitionDelay = (idx * 80) + "ms";
         entry.target.classList.add("on");
         observer.unobserve(entry.target);
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+    }, { threshold: 0.1, rootMargin: "0px 0px -5% 0px" });
     reveals.forEach(n => revealObserver.observe(n));
   }
 
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
+
 
 function renderThanks(el){
   el.innerHTML = `
@@ -4220,7 +4424,7 @@ const Admin = {
   },
   palet:["#CFC0E8","#B7D3B0","#F3C7D1","#FBE7AE","#D8ECDD","#E9D9C6","#C4718A","#7A6294","#5C7A57","#B4802F"],
   box(id,judul,tinggi,extra){ return `<div class="chartbox"><div class="hd"><strong>${judul}</strong>
-    <span>${extra||""}<button class="btn xs ghost no-print" onclick="Admin.png('${id}')">Unduh PNG</button></span></div>
+    <span>${extra||""}<button class="btn xs ghost no-print" data-action="admin-png" data-id="${id}">Unduh PNG</button></span></div>
     <div style="height:${tinggi||300}px"><canvas id="${id}"></canvas></div></div>`; },
   png(id){ const c=document.getElementById(id); if(!c) return;
     const out=document.createElement("canvas"); out.width=c.width; out.height=c.height;
@@ -4320,7 +4524,7 @@ const Admin = {
         K.kolom(r,"D1"), K.kolom(r,"D2"), K.kolom(r,"D5"), K.kolom(r,"D6"),
         this.num(mx), this.num(my), K.lengkap(r)?'<span class="badge ok">Lengkap</span>':'<span class="badge warn">Tidak lengkap</span>',
         r.excluded?'<span class="badge bad">Dikecualikan</span>':'<span class="badge ok">Aktif</span>',
-        `<button class="btn xs ghost" onclick="Admin.detail('${r.id}')">Lihat</button>`];
+        `<button class="btn xs ghost" data-action="admin-detail" data-id="${r.id}">Lihat</button>`];
     });
     body.innerHTML=`<p class="note" style="margin-bottom:12px">Daftar respons tanpa identitas pribadi. Klik “Lihat” untuk membaca seluruh jawaban satu responden.</p>
       ${this.tabel(["Waktu","Kode","Pengisian","Jenis kelamin","Usia","Semester","Kabupaten/Kota",{t:"Mean X",num:1},{t:"Mean Y",num:1},"Kelengkapan","Status","Detail"],rows)}`;
@@ -4368,9 +4572,9 @@ const Admin = {
           {v:K.totalSet(r,K.itemsVar("X"))??"–",cls:"num"},{v:K.totalSet(r,K.itemsVar("Y"))??"–",cls:"num"},
           this.num(mx),this.num(my),mx?K.kategori(mx):"–",my?K.kategori(my):"–",
           r.excluded?'<span class="badge bad">Dikecualikan</span>':'<span class="badge ok">Aktif</span>',
-          `<button class="btn xs ghost" onclick="Admin.detail('${r.id}')">Lihat</button>
-           <button class="btn xs ghost" onclick="Admin.toggleExcl('${r.id}')">${r.excluded?"Aktifkan":"Kecualikan"}</button>
-           <button class="btn xs rose" onclick="Admin.hapus('${r.id}')">Hapus</button>`];
+          `<button class="btn xs ghost" data-action="admin-detail" data-id="${r.id}">Lihat</button>
+           <button class="btn xs ghost" data-action="admin-toggle-excl" data-id="${r.id}">${r.excluded?"Aktifkan":"Kecualikan"}</button>
+           <button class="btn xs rose" data-action="admin-hapus" data-id="${r.id}">Hapus</button>`];
       });
       $("#rawtable").innerHTML=this.tabel(head,rows);
       $("#rawinfo").textContent=`Menampilkan ${page.length} dari ${list.length} baris · halaman ${this.rawPage}/${total}`;
@@ -4434,7 +4638,7 @@ const Admin = {
            d.outlier?"outlier":""].filter(Boolean).join(", "),
           this.num(d.m),this.num(d.sd),this.num(d.z),String(d.kosong),
           d.r.excluded?'<span class="badge bad">Dikecualikan</span>':'<span class="badge ok">Aktif</span>',
-          `<button class="btn xs ghost" onclick="Admin.toggleExcl('${d.r.id}')">${d.r.excluded?"Aktifkan":"Kecualikan"}</button>`]))
+          `<button class="btn xs ghost" data-action="admin-toggle-excl" data-id="${d.r.id}">${d.r.excluded?"Aktifkan":"Kecualikan"}</button>`]))
         : `<div class="card"><div class="empty"><div class="big">🍀</div><p>Tidak ada indikasi masalah kualitas data pada responden yang terfilter.</p></div></div>`}`;
   }
 };
@@ -4483,7 +4687,7 @@ Object.assign(Admin,{
         <select id="jenisItem" style="max-width:170px"><option value="bar">Bar</option><option value="pie">Pie</option><option value="doughnut">Doughnut</option></select></div>
       <div class="grid g2" id="itemcharts">${rows.map(r=>
         `<div class="chartbox"><div class="hd"><strong>${r.it}</strong>
-          <button class="btn xs ghost no-print" onclick="Admin.png('ci-${r.it}')">PNG</button></div>
+          <button class="btn xs ghost no-print" data-action="admin-png" data-id="ci-${r.it}">PNG</button></div>
           <p style="font-size:.82rem;color:var(--tinta-3);margin-bottom:6px">${esc(P_TEKS[r.it])}</p>
           <div style="height:230px"><canvas id="ci-${r.it}"></canvas></div></div>`).join("")}</div>`;
     const draw=(tipe)=>{ rows.forEach(r=>{
@@ -5000,7 +5204,7 @@ Object.assign(Admin,{
         <div style="font-size:.78rem;color:var(--tinta-3);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
           <span>${tglID(x.w)} · ID ${esc(String(x.id).slice(0,8))}</span>
           <span>${(x.tags||[]).map(t=>`<span class="chip lav">${esc(t)}</span>`).join(" ")}
-            <button class="btn xs ghost" onclick="Admin.tag('${x.id}')">Tag tema</button></span></div>
+            <button class="btn xs ghost" data-action="admin-tag" data-id="${x.id}">Tag tema</button></span></div>
         <p style="margin:8px 0 0">${esc(x.t)}</p></div>`).join("")
       : `<div class="empty"><div class="big">🌷</div><p>Belum ada jawaban ${label}</p></div>`;
     body.innerHTML=`
@@ -5366,7 +5570,7 @@ Object.assign(Admin,{
         <h2 style="margin-bottom:4px">Laporan Hasil Penelitian</h2>
         <p style="font-size:.9rem;color:var(--tinta-3)">${esc(JUDUL)}</p>
         <p style="font-size:.9rem;color:var(--tinta-3);margin:0">${esc(CONFIG.INSTITUSI)} · disusun ${tglID(new Date().toISOString())}</p>
-        <button class="btn sm no-print" style="margin-top:12px" onclick="window.print()">Cetak / simpan PDF</button></div>
+        <button class="btn sm no-print" style="margin-top:12px" data-action="window-print">Cetak / simpan PDF</button></div>
       ${sect("1. Informasi kuesioner",`<p>Kuesioner terdiri atas ${DEMOGRAFI.length} pertanyaan identitas, ${ITEMS.length} pernyataan skala Likert 1–5, dan 3 pertanyaan reflektif. Struktur pengukuran mencakup ${K.struktur.variabel.length} variabel dan ${ind.length} indikator.</p>`)}
       ${sect("2. Jumlah responden",`<p>Jumlah data yang tersimpan sebanyak ${this.rows.length} responden. Setelah filter dan pengecualian yang ditetapkan, analisis ini menggunakan ${f.length} responden, dengan ${selesai.length} di antaranya menjawab seluruh ${ITEMS.length} pernyataan.
         Rata-rata durasi pengisian ${durasi(S.mean(f.map(r=>r.durasi_ms).filter(v=>v)))}.</p>`)}
@@ -8366,6 +8570,21 @@ Object.assign(Admin,{
 
   route();
 })();
+
+// Global delegated click listener for strict CSP compliance (no inline handlers)
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest("[data-action]");
+  if (!btn) return;
+  const act = btn.dataset.action;
+  const id = btn.dataset.id;
+  if (act === "admin-png") { e.preventDefault(); if (typeof Admin !== "undefined" && Admin.png) Admin.png(id); }
+  else if (act === "admin-detail") { e.preventDefault(); if (typeof Admin !== "undefined" && Admin.detail) Admin.detail(id); }
+  else if (act === "admin-toggle-excl") { e.preventDefault(); if (typeof Admin !== "undefined" && Admin.toggleExcl) Admin.toggleExcl(id); }
+  else if (act === "admin-hapus") { e.preventDefault(); if (typeof Admin !== "undefined" && Admin.hapus) Admin.hapus(id); }
+  else if (act === "admin-tag") { e.preventDefault(); if (typeof Admin !== "undefined" && Admin.tag) Admin.tag(id); }
+  else if (act === "window-print") { e.preventDefault(); window.print(); }
+});
+
 </script>
 </body>
 </html>
