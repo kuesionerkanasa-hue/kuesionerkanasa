@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kuesioner Penelitian — Keadilan Kebijakan Koperasi Pertambangan & Sawit</title>
-<meta name="description" content="Kuesioner penelitian mahasiswa Universitas Palangka Raya mengenai keadilan kebijakan perluasan akses koperasi pada sektor pertambangan dan sawit di Kalimantan Tengah.">
+<title>PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN</title>
+<meta name="description" content="Kuesioner penelitian mahasiswa Universitas Palangka Raya mengenai pengaruh keadilan kebijakan terhadap sikap mahasiswa atas perluasan akses koperasi perkebunan kelapa sawit di Kabupaten Seruyan.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -727,7 +727,8 @@ const CONFIG = {
   SUPABASE_URL: "https://tbadjfyrjbkhmtajmyyc.supabase.co", // Project URL Supabase
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e1ZNzHgOLfE1x74M1xREkQ_ASaExnt-", // Supabase Publishable Key (bukan legacy JWT anon key)
   ADMIN_EMAIL: "kanasaminecraft@gmail.com", // Email admin yang SUDAH terdaftar di Supabase Authentication → Users. Login admin hanya meminta kata sandi; email ini dipakai secara internal.
-  APP_NAME: "Kuesioner Keadilan Kebijakan Koperasi",
+  APP_NAME: "PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN",
+  QUESTIONNAIRE_VERSION: "v2",
   INSTITUSI: "Universitas Palangka Raya – FISIP – Ilmu Administrasi Negara",
 
   /* Penyetelan teknis — boleh dibiarkan apa adanya. */
@@ -746,6 +747,7 @@ const CONFIG = {
 const URL_SIAP = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(String(CONFIG.SUPABASE_URL||"").trim());
 const KEY_SIAP = /^sb_publishable_[A-Za-z0-9_-]+$/.test(String(CONFIG.SUPABASE_PUBLISHABLE_KEY||"").trim());
 const SUPA_SIAP = URL_SIAP && KEY_SIAP;
+const Q_VERSI = "v2";
 const PESAN_CONFIG_KURANG = !URL_SIAP
   ? "SUPABASE_URL belum dikonfigurasi. Isi Project URL Supabase pada blok CONFIG di index.html."
   : (!KEY_SIAP ? "SUPABASE_PUBLISHABLE_KEY belum dikonfigurasi atau formatnya tidak valid (harus diawali sb_publishable_)." : "");
@@ -821,67 +823,97 @@ const Tema = {
    ============================================================ */
 const EMOJI_SKALA = {1:"\ud83d\ude23",2:"\ud83d\ude41",3:"\ud83d\ude10",4:"\ud83d\ude42",5:"\ud83d\ude0a"};
 const EMOJI_OPSI = {
-  "17\u201318 tahun":"\ud83c\udf31","19\u201320 tahun":"\ud83c\udf3f","21\u201322 tahun":"\ud83c\udf38","23 tahun atau lebih":"\ud83c\udf33",
-  "Sangat sering":"\u2728\u2728\u2728\u2728\u2728","Sering":"\u2728\u2728\u2728\u2728","Kadang-kadang":"\u2728\u2728\u2728","Jarang":"\u2728\u2728","Tidak pernah":"\u2728",
-  "Media sosial":"\ud83d\udcf1","Berita online":"\ud83d\udcf0","Televisi":"\ud83d\udcfa",
-  "Dosen atau lingkungan akademik":"\ud83c\udf93","Organisasi/komunitas mahasiswa":"\ud83d\udc65","Teman atau keluarga":"\ud83d\udcac",
-  "Pernah":"\ud83d\udca1","Belum pernah":"\u2753","Lainnya":"\u270f\ufe0f",
-  "Proses dan transparansi":"\ud83d\udccb","Kesetaraan kesempatan":"\u2696\ufe0f","Pembagian manfaat":"\ud83c\udf31",
-  "Perlindungan masyarakat":"\ud83d\udc65","Perlindungan lingkungan":"\ud83c\udf3f","Pengawasan":"\ud83d\udd0e",
-  "Peningkatan kapasitas koperasi":"\ud83d\udcda"
+  "Laki-laki":"👨","Perempuan":"👩","Memilih tidak menjawab":"🔒",
+  "17–18 tahun":"🌱","19–20 tahun":"🌿","21–22 tahun":"🌸","23 tahun atau lebih":"🌳",
+  "Sangat sering":"✨✨✨✨✨","Sering":"✨✨✨✨","Kadang-kadang":"✨✨✨","Jarang":"✨✨","Tidak pernah":"✨",
+  "Media sosial":"📱","Berita online":"📰","Televisi":"📺",
+  "Dosen atau lingkungan akademik":"🎓","Organisasi/komunitas mahasiswa":"👥","Teman atau keluarga":"💬",
+  "Pernah":"💡","Belum pernah":"❓","Lainnya":"✏️",
+  "Transparansi dan keterbukaan informasi":"📋","Kesetaraan kesempatan":"⚖️","Pembagian manfaat":"🌱",
+  "Perlindungan masyarakat":"👥","Perlindungan lingkungan":"🌿","Pengawasan":"🔍",
+  "Peningkatan kapasitas koperasi":"📚"
 };
 const EMOJI_DEMO = {D6:"\ud83d\udccd",D5:"\ud83d\udcd8",D3:"\ud83c\udfeb",D4:"\ud83d\udcdd"};
 function emojiOpsi(idDemo,teks){ return EMOJI_OPSI[teks] || EMOJI_DEMO[idDemo] || ""; }
 
 /* isyarat visual mini per pernyataan: {e: emoji, s: nama sticker, t: label singkat} */
+/* isyarat visual mini per pernyataan: {e: emoji, s: nama sticker, t: label singkat} */
 const CUE = {
-  P1:["\ud83d\udcd6","book","Keterbukaan informasi"], P2:["\ud83d\udccb","label","Kejelasan prosedur"],
-  P3:["\ud83d\udcac","envelope","Ruang menyampaikan pendapat"], P4:["\u2696\ufe0f","daisy","Dasar perlakuan"],
-  P5:["\ud83d\udd11","door","Kesempatan memperoleh akses"], P6:["\u2696\ufe0f","daisy","Perbedaan kemampuan"],
-  P7:["\ud83d\udcb0","crystal","Keterbatasan modal"], P8:["\u2696\ufe0f","crystal","Hak formal vs praktik"],
-  P9:["\ud83c\udf31","floret","Peningkatan kapasitas"],
-  P10:["\ud83e\uddfa","basket","Manfaat bagi anggota"], P11:["\ud83d\udc65","mushroom-house","Masyarakat sekitar"],
-  P12:["\ud83d\udcd6","book","Mekanisme yang diketahui"], P13:["\ud83e\udd1d","violets","Keterlibatan anggota"],
-  P14:["\u2696\ufe0f","basket","Besaran vs keadilan"],
-  P15:["\ud83d\udc65","mushroom-house","Dampak sosial"], P16:["\ud83d\udcb0","teacup","Dampak ekonomi"],
-  P17:["\ud83c\udf3f","clover","Dampak lingkungan"], P18:["\ud83d\udee1\ufe0f","clover","Penerima manfaat & penanggung dampak"],
-  P19:["\u2696\ufe0f","moon","Keseimbangan manfaat & dampak"],
-  P20:["\ud83d\udd0e","lantern","Tujuan & pelaksanaan"], P21:["\ud83d\udd0e","lantern","Manfaat & dampak"],
-  P22:["\ud83d\uddfa\ufe0f","vine","Kondisi di lapangan"],
-  P23:["\ud83d\udc8c","butterfly","Penerimaan & kondisi daerah"], P24:["\ud83d\udc8c","butterfly","Penerimaan & ketentuan"],
-  P25:["\ud83d\udc8c","bellflower","Penerimaan & dampak"],
-  P26:["\ud83d\udd0e","lantern","Pengawasan"], P27:["\ud83d\udcca","books","Evaluasi kebijakan"],
-  P28:["\ud83c\udf3f","door","Keberlanjutan kebijakan"], P29:["\ud83d\udc8c","ribbon","Ruang kritik & masukan"]
+  X1: ["📖","book","Keterbukaan informasi plasma"],
+  X2: ["📋","label","Persyaratan & tahapan koperasi"],
+  X3: ["⚖️","daisy","Prosedur jelas & konsisten"],
+  X4: ["📢","envelope","Perkembangan realisasi"],
+  X5: ["💬","envelope","Penyampaian pendapat/keberatan"],
+  X6: ["⚖️","door","Kesetaraan kesempatan"],
+  X7: ["💰","crystal","Kesempatan modal kecil"],
+  X8: ["🌱","floret","Koperasi masyarakat lokal"],
+  X9: ["📚","books","Peningkatan kapasitas SDM"],
+  X10: ["🛡️","moon","Pencegahan dominasi"],
+  X11: ["🧺","basket","Realisasi manfaat ekonomi"],
+  X12: ["📑","label","Mekanisme pembagian hasil"],
+  X13: ["🔍","lantern","Transparansi jumlah & sumber"],
+  X14: ["🤝","violets","Kepastian hak anggota"],
+  X15: ["👥","mushroom-house","Dampak sosial"],
+  X16: ["🛡️","clover","Perlindungan dampak ekonomi"],
+  X17: ["🌿","clover","Dampak lingkungan"],
+  X18: ["⚖️","moon","Tanggung jawab pihak penerima"],
+  X19: ["⚖️","moon","Keseimbangan manfaat & risiko"],
+  Y1: ["💡","lantern","Peningkatan keterlibatan ekonomi"],
+  Y2: ["🔍","lantern","Realisasi manfaat nyata"],
+  Y3: ["🗺️","vine","Kondisi & kemampuan koperasi"],
+  Y4: ["📊","books","Evaluasi pelaksanaan kebijakan"],
+  Y5: ["💌","butterfly","Penerimaan peningkatan ekonomi"],
+  Y6: ["📜","butterfly","Penerimaan berbasis transparansi"],
+  Y7: ["🌱","bellflower","Penerimaan berbasis manfaat nyata"],
+  Y8: ["🤝","door","Dukungan kesempatan koperasi"],
+  Y9: ["🔍","lantern","Dukungan pengawasan kemitraan"],
+  Y10: ["🌿","ribbon","Dukungan keberlanjutan adil"]
 };
-const ART_BAGIAN = { B1:["book","floret"], B2:["crystal","daisy"], B3:["basket","violets"],
-  B4:["clover","mushroom"], B5:["door","butterfly"] };
+
+const ART_BAGIAN = {
+  C1: ["book","floret"],
+  C2: ["crystal","daisy"],
+  C3: ["basket","violets"],
+  C4: ["clover","mushroom-house"],
+  D1: ["lantern","vine"],
+  D2: ["butterfly","bellflower"],
+  D3: ["door","ribbon"]
+};
+
 const RINGKAS_BAGIAN = {
-  B1:"Bagian ini membahas keterbukaan informasi, kejelasan prosedur, serta kesempatan menyampaikan pendapat.",
-  B2:"Bagian ini membahas kesempatan koperasi memperoleh akses dan perbedaan kemampuan antarkoperasi.",
-  B3:"Bagian ini membahas siapa saja yang merasakan manfaat dan bagaimana manfaat itu dibagi.",
-  B4:"Bagian ini membahas dampak sosial, ekonomi, dan lingkungan serta keseimbangannya.",
-  B5:"Bagian ini menanyakan sikap Anda sendiri terhadap kebijakan yang dibahas."
+  C1: "Membahas keterbukaan informasi, kejelasan prosedur perizinan plasma, dan ruang penyampaian pendapat bagi masyarakat dan anggota koperasi.",
+  C2: "Membahas kesetaraan kesempatan bagi koperasi lokal dan modal kecil serta pencegahan dominasi.",
+  C3: "Membahas kepastian dan transparansi pembagian hasil usaha perkebunan sawit kepada anggota koperasi.",
+  C4: "Membahas penanganan dampak sosial, ekonomi, dan lingkungan serta keseimbangan penanganan risiko.",
+  D1: "Menilai perluasan akses koperasi, realisasi manfaat, dan urgensi evaluasi kebijakan.",
+  D2: "Sikap penerimaan Anda terhadap kebijakan berdasarkan transparansi dan manfaat nyata.",
+  D3: "Sikap dukungan Anda terhadap pengawasan, perlindungan hak, dan keberlanjutan kebijakan."
 };
 
 /* ============================================================
-   MODUL 3 — ISI KUESIONER (sesuai naskah, tidak diubah)
+   MODUL 3 — INSTRUMEN PENELITIAN TERBARU (v2)
+   Judul: PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS
+   PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN
    ============================================================ */
-const JUDUL = "KUESIONER PENELITIAN KEADILAN KEBIJAKAN DALAM PERLUASAN AKSES KOPERASI PERTAMBANGAN DAN SAWIT DI KALIMANTAN TENGAH SERTA PENGARUHNYA TERHADAP SIKAP MAHASISWA";
+const JUDUL = "PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN";
 
 const KATA_PENGANTAR = [
-"Yth. Saudara/i Responden,",
-"Kami merupakan mahasiswa Universitas Palangka Raya, Fakultas Ilmu Sosial dan Ilmu Politik, Program Studi Ilmu Administrasi Negara yang sedang melaksanakan penelitian dengan judul: \u201CKEADILAN KEBIJAKAN DALAM PERLUASAN AKSES KOPERASI PERTAMBANGAN DAN SAWIT DI KALIMANTAN TENGAH SERTA PENGARUHNYA TERHADAP SIKAP MAHASISWA.\u201D",
-"Kuesioner ini bertujuan untuk mengetahui penilaian mahasiswa mengenai keadilan kebijakan dalam perluasan akses koperasi pada sektor pertambangan dan perkebunan kelapa sawit di Kalimantan Tengah serta mengetahui sikap mahasiswa terhadap kebijakan tersebut.",
-"Kami memohon kesediaan Saudara/i untuk mengisi kuesioner ini sesuai dengan pemahaman, penilaian, dan sikap Saudara/i yang sebenarnya. Tidak terdapat jawaban benar atau salah. Saudara/i tidak diarahkan untuk mendukung ataupun menolak kebijakan yang dibahas. Seluruh jawaban yang diberikan akan dijaga kerahasiaannya dan hanya digunakan untuk kepentingan penelitian akademik.",
-"Atas waktu, perhatian, dan partisipasi Saudara/i, kami mengucapkan terima kasih.",
-"Hormat kami, Tim Peneliti"];
+  "Yth. Saudara/i Responden,",
+  "Kami merupakan mahasiswa Universitas Palangka Raya, Fakultas Ilmu Sosial dan Ilmu Politik, Program Studi Ilmu Administrasi Negara yang sedang melaksanakan penelitian dengan judul: \u201CPENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN\u201D.",
+  "Kuesioner ini bertujuan untuk mengetahui penilaian mahasiswa mengenai keadilan kebijakan dalam perluasan akses koperasi perkebunan kelapa sawit di Kabupaten Seruyan serta pengaruhnya terhadap sikap mahasiswa atas kebijakan tersebut.",
+  "Kami memohon kesediaan Saudara/i untuk mengisi kuesioner ini sesuai dengan pemahaman, penilaian, dan sikap Saudara/i yang sebenarnya. Tidak terdapat jawaban benar atau salah. Saudara/i tidak diarahkan untuk mendukung ataupun menolak kebijakan yang dibahas. Seluruh jawaban yang diberikan akan dijaga kerahasiaannya dan hanya digunakan untuk kepentingan penelitian akademik.",
+  "Atas waktu, perhatian, dan partisipasi Saudara/i, kami mengucapkan terima kasih.",
+  "Hormat kami, Tim Peneliti"
+];
 
 const PENUTUP = "Terima kasih atas waktu, kesediaan, dan partisipasi Saudara/i dalam mengisi kuesioner penelitian ini. Setiap jawaban yang diberikan sangat berarti bagi penelitian kami dan akan digunakan untuk kepentingan akademik. Hormat kami, Tim Peneliti";
 
 const PETUNJUK = [
-"Dalam kuesioner ini, perluasan akses koperasi pada sektor pertambangan dan sawit merujuk pada adanya kebijakan yang memberikan ruang atau kesempatan kepada koperasi untuk terlibat dalam kegiatan usaha pada sektor pertambangan dan perkebunan kelapa sawit sesuai dengan ketentuan yang berlaku. Kebijakan tersebut tidak hanya berkaitan dengan adanya kesempatan secara formal, tetapi juga dapat dilihat dari proses pemberian akses, kesetaraan kesempatan, pembagian manfaat, serta dampak atau risiko yang mungkin muncul dalam pelaksanaannya.",
-"Sebagai gambaran, Undang-Undang Nomor 2 Tahun 2025 memberikan prioritas kepada koperasi dalam memperoleh wilayah izin usaha pertambangan. Ketentuan mengenai kegiatan pertambangan oleh koperasi juga diatur lebih lanjut melalui Peraturan Menteri Koperasi Nomor 12 Tahun 2025. Dalam aturan tersebut, koperasi dapat mengajukan Izin Pertambangan Rakyat apabila berada pada wilayah yang telah ditetapkan sebagai Wilayah Pertambangan Rakyat dan memenuhi persyaratan yang berlaku.",
-"Bacalah setiap pernyataan dengan teliti, kemudian pilih satu jawaban yang paling sesuai dengan pandangan Anda. Tidak ada jawaban benar atau salah. Jawablah berdasarkan pemahaman dan penilaian Anda sendiri."];
+  "Kuesioner ini terdiri dari 4 bagian utama dengan total 42 item: Identitas Responden (D1–D10 = 10 item), Variabel X — Keadilan Kebijakan (X1–X19 = 19 item), Variabel Y — Sikap Mahasiswa (Y1–Y10 = 10 item), dan Pertanyaan Reflektif (R1–R3 = 3 item).",
+  "Pernyataan pada Variabel X dan Variabel Y dinilai menggunakan Skala Likert 1 sampai 5: 1 = Sangat Tidak Setuju (STS), 2 = Tidak Setuju (TS), 3 = Netral (N), 4 = Setuju (S), dan 5 = Sangat Setuju (SS).",
+  "Sebelum mengisi kelompok pernyataan tertentu, disajikan deskripsi Studi Kasus faktual terkait dinamika kemitraan dan kebun plasma di Kabupaten Seruyan sebagai konteks bacaan.",
+  "Pilihlah jawaban yang paling mencerminkan pandangan Anda. Sistem dilengkapi autosave otomatis, sehingga isian Anda tetap tersimpan apabila halaman ditutup atau koneksi terputus."
+];
 
 const SKALA = [
   {v:1,k:"STS",l:"Sangat Tidak Setuju"},
@@ -891,96 +923,190 @@ const SKALA = [
   {v:5,k:"SS", l:"Sangat Setuju"}
 ];
 
-const KABUPATEN = ["Palangka Raya","Kotawaringin Barat","Kotawaringin Timur","Seruyan","Katingan","Pulang Pisau","Kapuas","Gunung Mas","Barito Selatan","Barito Timur","Barito Utara","Murung Raya","Lamandau","Sukamara"];
+const KABUPATEN = [
+  "Palangka Raya","Kotawaringin Barat","Kotawaringin Timur","Seruyan","Katingan",
+  "Pulang Pisau","Kapuas","Gunung Mas","Barito Selatan","Barito Timur",
+  "Barito Utara","Murung Raya","Lamandau","Sukamara"
+];
 
+/* A. IDENTITAS RESPONDEN (D1–D10) */
 const DEMOGRAFI = [
- {id:"D1",t:"radio",q:"Jenis Kelamin",o:["Laki-laki","Perempuan","Memilih tidak menjawab"]},
- {id:"D2",t:"radio",q:"Usia",o:["17–18 tahun","19–20 tahun","21–22 tahun","23 tahun atau lebih"]},
- {id:"D3",t:"text", q:"Perguruan Tinggi",ph:"Nama perguruan tinggi Anda"},
- {id:"D4",t:"text", q:"Fakultas/Program Studi",ph:"Contoh: Fakultas Ilmu Sosial dan Ilmu Politik / Ilmu Administrasi Negara"},
- {id:"D5",t:"radio",q:"Semester",o:["Semester 1","Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"],other:true},
- {id:"D6",t:"radio",q:"Kabupaten/Kota Lokasi Perguruan Tinggi",o:KABUPATEN,other:true},
- {id:"D7",t:"radio",q:"Apakah Anda pernah mendengar atau memperoleh informasi mengenai keterlibatan koperasi dalam sektor pertambangan dan/atau perkebunan kelapa sawit?",o:["Pernah","Belum pernah"]},
- {id:"D8",t:"radio",q:"Seberapa sering Anda memperoleh informasi mengenai kebijakan publik atau pengelolaan sumber daya alam?",o:["Sangat sering","Sering","Kadang-kadang","Jarang","Tidak pernah"]},
- {id:"D9",t:"radio",q:"Sumber informasi yang paling sering Anda gunakan untuk mengetahui isu kebijakan publik dan sumber daya alam adalah:",o:["Media sosial","Berita online","Televisi","Dosen atau lingkungan akademik","Organisasi/komunitas mahasiswa","Teman atau keluarga"],other:true},
- {id:"D10",t:"radio",q:"Apakah Anda pernah mendengar mengenai kebijakan yang memberikan ruang lebih besar bagi koperasi untuk terlibat dalam kegiatan usaha pertambangan?",o:["Pernah","Belum pernah"]}
+  {id:"D1",t:"radio",q:"Jenis Kelamin",o:["Laki-laki","Perempuan","Memilih tidak menjawab"],required:true},
+  {id:"D2",t:"radio",q:"Usia",o:["17–18 tahun","19–20 tahun","21–22 tahun","23 tahun atau lebih"],required:true},
+  {id:"D3",t:"text", q:"Perguruan Tinggi",ph:"Nama perguruan tinggi Anda",required:true},
+  {id:"D4",t:"text", q:"Fakultas/Program Studi",ph:"Contoh: FISIP / Program Studi Ilmu Administrasi Negara",required:true},
+  {id:"D5",t:"radio",q:"Semester",o:["Semester 1","Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"],other:true,required:true},
+  {id:"D6",t:"radio",q:"Kabupaten/Kota Lokasi Perguruan Tinggi",o:KABUPATEN,other:true,required:true},
+  {id:"D7",t:"radio",q:"Apakah Anda pernah mendengar atau memperoleh informasi mengenai koperasi yang terlibat dalam kegiatan perkebunan kelapa sawit di Kabupaten Seruyan?",o:["Pernah","Belum pernah"],required:true},
+  {id:"D8",t:"radio",q:"Seberapa sering Anda memperoleh informasi mengenai kebijakan publik atau kegiatan perkebunan kelapa sawit?",o:["Sangat sering","Sering","Kadang-kadang","Jarang","Tidak pernah"],required:true},
+  {id:"D9",t:"radio",q:"Sumber informasi yang paling sering Anda gunakan untuk mengetahui isu kebijakan publik dan perkebunan kelapa sawit adalah:",o:["Media sosial","Berita online","Televisi","Dosen atau lingkungan akademik","Organisasi/komunitas mahasiswa","Teman atau keluarga"],other:true,required:true},
+  {id:"D10",t:"radio",q:"Apakah Anda pernah mendengar mengenai kebijakan atau program yang memberikan ruang bagi koperasi untuk terlibat dalam kegiatan perkebunan kelapa sawit di Kabupaten Seruyan?",o:["Pernah","Belum pernah"],required:true}
 ];
 
+/* B. VARIABEL X (X1–X19) & C. VARIABEL Y (Y1–Y10) */
 const P_TEKS = {
-P1:"Informasi mengenai persyaratan koperasi untuk memperoleh akses pada sektor pertambangan dan sawit perlu tersedia secara terbuka bagi pihak yang berkepentingan.",
-P2:"Prosedur pemberian akses kepada koperasi pada sektor pertambangan dan sawit perlu memiliki tahapan dan ketentuan yang jelas.",
-P3:"Pihak yang berkepentingan dengan kebijakan perlu memiliki kesempatan untuk menyampaikan pendapat atau masukan dalam proses pelaksanaannya.",
-P4:"Perbedaan perlakuan terhadap koperasi dalam proses memperoleh akses perlu memiliki dasar yang jelas dan dapat dipertanggungjawabkan.",
-P5:"Koperasi yang memenuhi ketentuan perlu memiliki kesempatan untuk memperoleh akses pada sektor pertambangan dan sawit.",
-P6:"Perbedaan kemampuan antarkoperasi merupakan hal yang perlu dipertimbangkan dalam menilai kesetaraan kesempatan memperoleh akses.",
-P7:"Koperasi dengan keterbatasan modal tetap perlu memiliki peluang untuk memanfaatkan kebijakan perluasan akses.",
-P8:"Kesamaan hak yang diberikan melalui peraturan belum tentu menunjukkan bahwa setiap koperasi memiliki kesempatan yang sama dalam praktiknya.",
-P9:"Peningkatan kapasitas koperasi dapat menjadi salah satu hal yang perlu dipertimbangkan untuk menciptakan kesempatan yang lebih setara.",
-P10:"Manfaat ekonomi dari keterlibatan koperasi dalam sektor pertambangan dan sawit perlu dapat dirasakan oleh anggota koperasi.",
-P11:"Masyarakat di sekitar wilayah kegiatan perlu menjadi salah satu pihak yang dipertimbangkan dalam pembagian manfaat kebijakan.",
-P12:"Mekanisme pembagian manfaat dari kegiatan koperasi perlu dapat diketahui oleh anggota koperasi dan pihak yang berkepentingan.",
-P13:"Keterlibatan anggota dalam tata kelola koperasi merupakan hal yang relevan dalam menilai pembagian manfaat dari kegiatan koperasi.",
-P14:"Besarnya manfaat ekonomi yang dihasilkan oleh suatu kebijakan belum dengan sendirinya menunjukkan bahwa manfaat tersebut telah terbagi secara adil.",
-P15:"Kemungkinan munculnya dampak sosial perlu menjadi pertimbangan dalam pelaksanaan kebijakan perluasan akses koperasi.",
-P16:"Dampak kegiatan terhadap kondisi ekonomi masyarakat sekitar perlu diperhatikan dalam pelaksanaan kebijakan.",
-P17:"Dampak kegiatan terhadap lingkungan merupakan salah satu aspek yang relevan dalam menilai pelaksanaan kebijakan.",
-P18:"Pihak yang memperoleh manfaat dan pihak yang berpotensi menanggung dampak dari kebijakan perlu diperhatikan secara bersamaan.",
-P19:"Keseimbangan antara manfaat ekonomi dengan potensi dampak sosial, ekonomi, dan lingkungan merupakan hal yang penting dalam menilai kebijakan.",
-P20:"Saya menilai bahwa perluasan akses koperasi pada sektor pertambangan dan sawit perlu dilihat berdasarkan tujuan dan pelaksanaannya.",
-P21:"Saya menilai bahwa manfaat dan dampak yang muncul dalam pelaksanaan kebijakan merupakan hal yang penting dalam menentukan sikap terhadap kebijakan tersebut.",
-P22:"Saya menilai bahwa kondisi yang terjadi di lapangan perlu menjadi pertimbangan dalam memberikan penilaian terhadap kebijakan perluasan akses koperasi.",
-P23:"Saya dapat menerima adanya perluasan akses koperasi pada sektor pertambangan dan sawit dengan mempertimbangkan kondisi masyarakat di daerah yang bersangkutan.",
-P24:"Saya dapat menerima keterlibatan koperasi dalam sektor pertambangan dan sawit dengan mempertimbangkan ketentuan yang berlaku.",
-P25:"Saya dapat menerima kebijakan perluasan akses koperasi dengan tetap mempertimbangkan dampak sosial, ekonomi, dan lingkungan yang mungkin muncul.",
-P26:"Saya memandang pengawasan terhadap pelaksanaan kegiatan koperasi pada sektor pertambangan dan sawit sebagai hal yang penting.",
-P27:"Saya mendukung adanya evaluasi terhadap pelaksanaan kebijakan berdasarkan hasil dan dampaknya bagi koperasi serta masyarakat.",
-P28:"Saya mendukung keberlanjutan kebijakan dengan mempertimbangkan kondisi koperasi, masyarakat, dan lingkungan di wilayah pelaksanaannya.",
-P29:"Saya bersedia memberikan dukungan terhadap pelaksanaan kebijakan apabila terdapat ruang bagi pihak yang berkepentingan untuk menyampaikan kritik dan masukan."
-};
-const ITEMS = Object.keys(P_TEKS);
+  // X1–X5: Keadilan Prosedural
+  X1: "Menurut saya, informasi mengenai mekanisme pelaksanaan kebijakan plasma bagi masyarakat di Kabupaten Seruyan perlu disampaikan secara terbuka dan mudah dipahami.",
+  X2: "Menurut saya, persyaratan dan tahapan yang harus dipenuhi koperasi untuk memperoleh akses dalam kemitraan perkebunan sawit perlu dijelaskan secara terbuka.",
+  X3: "Menurut saya, proses penentuan koperasi atau masyarakat yang memperoleh akses dalam program perkebunan sawit harus dilakukan berdasarkan prosedur yang jelas dan konsisten.",
+  X4: "Menurut saya, masyarakat yang menjadi penerima manfaat perlu mengetahui perkembangan realisasi kebijakan dan kemitraan perkebunan sawit yang melibatkan koperasi.",
+  X5: "Menurut saya, masyarakat dan anggota koperasi perlu diberikan ruang untuk menyampaikan pendapat atau keberatan apabila terdapat persoalan dalam pelaksanaan kemitraan perkebunan sawit.",
 
+  // X6–X10: Keadilan Kesempatan
+  X6: "Menurut saya, setiap koperasi yang memenuhi persyaratan harus memiliki kesempatan yang sama untuk terlibat dalam kemitraan perkebunan sawit di Kabupaten Seruyan.",
+  X7: "Menurut saya, koperasi dengan modal yang lebih kecil tetap perlu memiliki kesempatan untuk memperoleh akses dalam kegiatan perkebunan sawit.",
+  X8: "Menurut saya, koperasi masyarakat lokal perlu mendapatkan kesempatan yang memadai untuk terlibat dalam pengelolaan kebun plasma di Kabupaten Seruyan.",
+  X9: "Menurut saya, koperasi yang memiliki keterbatasan sumber daya manusia perlu mendapatkan dukungan peningkatan kapasitas agar mampu memanfaatkan akses yang diberikan.",
+  X10: "Menurut saya, perluasan akses koperasi harus mencegah terjadinya dominasi koperasi tertentu yang lebih kuat terhadap kesempatan yang seharusnya dapat dimanfaatkan oleh koperasi masyarakat lainnya.",
+
+  // X11–X14: Keadilan Distribusi Manfaat
+  X11: "Menurut saya, keberhasilan perluasan akses koperasi perkebunan sawit harus dilihat dari sejauh mana manfaat ekonominya benar-benar diterima oleh anggota koperasi.",
+  X12: "Menurut saya, pembagian hasil dari kegiatan perkebunan sawit melalui koperasi harus dilakukan berdasarkan hak anggota dan mekanisme yang jelas.",
+  X13: "Menurut saya, anggota koperasi perlu mendapatkan informasi yang jelas mengenai jumlah, sumber, dan mekanisme pembagian hasil dari kegiatan perkebunan sawit.",
+  X14: "Menurut saya, persoalan kepengurusan koperasi tidak seharusnya menyebabkan hak ekonomi anggota menjadi tidak pasti.",
+
+  // X15–X19: Keadilan Konsekuensi dan Risiko
+  X15: "Menurut saya, kebijakan perluasan akses koperasi perkebunan sawit harus mempertimbangkan dampaknya terhadap kehidupan sosial masyarakat sekitar.",
+  X16: "Menurut saya, masyarakat yang tinggal di sekitar perkebunan sawit harus memperoleh perlindungan apabila mengalami dampak ekonomi dari pelaksanaan kebijakan.",
+  X17: "Menurut saya, potensi dampak lingkungan dari kegiatan perkebunan sawit harus menjadi pertimbangan dalam pemberian dan pelaksanaan akses koperasi.",
+  X18: "Menurut saya, pihak yang memperoleh manfaat ekonomi dari kegiatan perkebunan sawit juga perlu ikut bertanggung jawab terhadap dampak yang ditimbulkan.",
+  X19: "Menurut saya, kebijakan perluasan akses koperasi perkebunan sawit dapat dikatakan adil apabila manfaat ekonomi yang diperoleh sebanding dengan upaya penanganan dampak sosial dan lingkungan yang muncul.",
+
+  // Y1–Y4: Penilaian
+  Y1: "Saya menilai bahwa perluasan akses koperasi dalam perkebunan sawit dapat menjadi salah satu cara untuk meningkatkan keterlibatan ekonomi masyarakat Kabupaten Seruyan.",
+  Y2: "Saya menilai bahwa keberhasilan kebijakan perluasan akses koperasi tidak cukup diukur dari adanya program atau kesepakatan, tetapi juga dari realisasi manfaat yang diterima masyarakat.",
+  Y3: "Saya menilai bahwa kondisi dan kemampuan koperasi masyarakat perlu menjadi pertimbangan dalam pelaksanaan kebijakan perluasan akses koperasi perkebunan sawit.",
+  Y4: "Saya menilai bahwa adanya persoalan plasma dan tata kelola koperasi menunjukkan pentingnya evaluasi terhadap pelaksanaan kebijakan perluasan akses koperasi di Kabupaten Seruyan.",
+
+  // Y5–Y7: Penerimaan
+  Y5: "Saya dapat menerima kebijakan perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan sebagai upaya meningkatkan keterlibatan masyarakat dalam kegiatan ekonomi.",
+  Y6: "Saya dapat menerima keterlibatan koperasi dalam perkebunan sawit apabila proses pelaksanaannya dilakukan secara transparan dan sesuai dengan ketentuan.",
+  Y7: "Saya dapat menerima kebijakan perluasan akses koperasi apabila manfaatnya benar-benar dapat dirasakan oleh anggota koperasi dan masyarakat sekitar.",
+
+  // Y8–Y10: Dukungan
+  Y8: "Saya mendukung kebijakan yang memberikan kesempatan lebih besar kepada koperasi masyarakat untuk terlibat dalam perkebunan sawit di Kabupaten Seruyan.",
+  Y9: "Saya mendukung adanya pengawasan yang lebih kuat terhadap pelaksanaan kemitraan perkebunan sawit agar hak anggota koperasi dan masyarakat dapat terlindungi.",
+  Y10: "Saya mendukung keberlanjutan kebijakan perluasan akses koperasi perkebunan sawit apabila kebijakan tersebut mampu memberikan kesempatan yang adil, manfaat yang nyata, serta perlindungan terhadap masyarakat dan lingkungan."
+};
+
+const ITEMS = Object.keys(P_TEKS); // X1..X19, Y1..Y10 (29 item Likert)
+
+/* STRUKTUR BAGIAN DENGAN STUDI KASUS FAKTUAL */
 const BAGIAN = [
- {id:"B1",judul:"Proses dan Pemberian Akses",
-  intro:"Perluasan akses koperasi tidak hanya berkaitan dengan adanya hak atau kesempatan dalam peraturan, tetapi juga bagaimana informasi, prosedur, dan proses pemberian akses dilaksanakan.",
-  items:["P1","P2","P3","P4"]},
- {id:"B2",judul:"Kesempatan Koperasi",
-  intro:"Kemampuan koperasi dalam memanfaatkan kebijakan dapat berbeda. Perbedaan tersebut dapat berkaitan dengan modal, sumber daya manusia, teknologi, pengalaman pengelolaan, maupun akses terhadap informasi.",
-  kasus:"Di Kalimantan Tengah, persoalan akses dan legalitas dalam kegiatan pertambangan rakyat masih menjadi perhatian. Pada Mei 2026, DPRD Kalimantan Tengah bersama Aliansi Pertambangan Rakyat menyampaikan persoalan mengenai perluasan Wilayah Pertambangan Rakyat (WPR), penyederhanaan regulasi, serta perlindungan hak masyarakat adat dan penambang tradisional. Dalam pemberitaan tersebut juga disebutkan bahwa sebagian masyarakat masih menghadapi persyaratan teknis dan proses legalitas yang sulit dipenuhi. Pada Juli 2026, aspirasi serupa kembali disampaikan oleh penambang rakyat dari Katingan yang menginginkan proses WPR dan Izin Pertambangan Rakyat (IPR) lebih sederhana agar masyarakat dapat menjalankan kegiatan secara legal dan memperoleh perlindungan hukum.",
-  items:["P5","P6","P7","P8","P9"]},
- {id:"B3",judul:"Pembagian Manfaat",
-  intro:"Dalam sektor perkebunan kelapa sawit, persoalan pembagian manfaat melalui pola plasma masih menjadi isu di sejumlah wilayah Kalimantan Tengah.",
-  kasus:"Pada Maret 2026, Pemerintah Kabupaten Seruyan memberitakan penandatanganan kerja sama Program Fasilitasi Pembangunan Kebun Masyarakat Sekitar sebesar 20 persen antara PT Rim Capital dengan sejumlah koperasi di Kecamatan Danau Sembuluh. Program tersebut diarahkan untuk memperkuat kemitraan perusahaan dengan masyarakat melalui kebun plasma. Namun, pada April 2026, warga dari Desa Tanjung Rangas dan Desa Pematang Limau di Seruyan kembali menyuarakan tuntutan realisasi plasma 20 persen. DPRD Seruyan kemudian meminta adanya tindak lanjut terhadap hak plasma tersebut. Pada Agustus 2026, tuntutan serupa kembali muncul. Warga dari Desa Rungau Raya, Bangkal, Terawan, dan Selunuk mendatangi Kantor Bupati Seruyan untuk meminta kepastian mengenai realisasi plasma 20 persen.",
-  items:["P10","P11","P12","P13","P14"]},
- {id:"B4",judul:"Dampak dan Risiko",
-  intro:"Perluasan kegiatan ekonomi berbasis sumber daya alam dapat memberikan manfaat ekonomi sekaligus menimbulkan dampak yang perlu diperhatikan.",
-  kasus:"Persoalan pertambangan rakyat di Kalimantan Tengah tidak hanya berkaitan dengan kesempatan memperoleh legalitas, tetapi juga dengan perlindungan masyarakat dan keberlanjutan lingkungan. Pada 2026, Pemerintah Provinsi Kalimantan Tengah menekankan pentingnya pertambangan rakyat yang berjalan berdasarkan legalitas, perlindungan masyarakat, dan keberlanjutan lingkungan.",
-  items:["P15","P16","P17","P18","P19"]},
- {id:"B5",judul:"Sikap Mahasiswa terhadap Kebijakan",
-  intro:"Bagian berikut berkaitan dengan sikap Anda terhadap kebijakan perluasan akses koperasi pada sektor pertambangan dan sawit di Kalimantan Tengah.",
-  items:["P20","P21","P22","P23","P24","P25","P26","P27","P28","P29"]}
+  {
+    id: "C1",
+    variable_id: "X",
+    indicator_id: "X_Prosedural",
+    judul: "Keadilan Prosedural",
+    intro: "Keadilan prosedural berkaitan dengan keterbukaan informasi, kejelasan mekanisme, serta kesempatan masyarakat dan anggota koperasi untuk menyampaikan pendapat dalam pelaksanaan kebijakan.",
+    kasus_judul: "Studi Kasus 1: Keterbukaan Informasi dan Proses Pelaksanaan",
+    kasus: "Pada Maret 2026, terdapat penandatanganan program plasma 20% antara PT Rim Capital dengan masyarakat melalui beberapa koperasi di Kabupaten Seruyan. Program tersebut menunjukkan adanya upaya memberikan ruang kepada masyarakat untuk terlibat dalam kegiatan perkebunan sawit melalui koperasi. Namun, pada April 2026, masyarakat Desa Tanjung Rangas dan Pematang Limau juga menyampaikan tuntutan terkait realisasi hak plasma. Kondisi tersebut menunjukkan bahwa keberadaan program atau kesepakatan belum selalu berarti proses pelaksanaannya telah dipahami dan dirasakan secara jelas oleh seluruh masyarakat.",
+    items: ["X1","X2","X3","X4","X5"]
+  },
+  {
+    id: "C2",
+    variable_id: "X",
+    indicator_id: "X_Kesempatan",
+    judul: "Keadilan Kesempatan",
+    intro: "Keadilan kesempatan berkaitan dengan adanya peluang yang setara bagi seluruh koperasi, termasuk koperasi masyarakat lokal dan modal kecil, serta pencegahan dominasi.",
+    kasus_judul: "Studi Kasus 2: Kesempatan Koperasi dalam Mengakses Perkebunan Sawit",
+    kasus: "Perluasan akses koperasi diharapkan dapat memberikan kesempatan kepada masyarakat untuk terlibat dalam kegiatan perkebunan sawit. Namun, kemampuan setiap koperasi tidak selalu sama. Perbedaan modal, sumber daya manusia, informasi, dan kemampuan pengelolaan dapat memengaruhi kemampuan koperasi dalam memanfaatkan kesempatan yang diberikan. Dengan demikian, adanya hak atau kesempatan secara formal belum tentu menghasilkan kesempatan yang sama dalam praktik.",
+    items: ["X6","X7","X8","X9","X10"]
+  },
+  {
+    id: "C3",
+    variable_id: "X",
+    indicator_id: "X_Distribusi",
+    judul: "Keadilan Distribusi Manfaat",
+    intro: "Keadilan distribusi manfaat berkaitan dengan kepastian, kejelasan mekanisme, dan transparansi pembagian hasil usaha perkebunan sawit kepada anggota koperasi.",
+    kasus_judul: "Studi Kasus 3: Pembagian Manfaat dan Hasil Kebun Plasma",
+    kasus: "Perluasan akses koperasi pada perkebunan sawit diharapkan dapat memberikan manfaat ekonomi kepada anggota koperasi dan masyarakat. Namun, manfaat tersebut tidak hanya bergantung pada adanya akses terhadap kebun, tetapi juga pada bagaimana hasil usaha dikelola dan dibagikan. Di Kabupaten Seruyan terdapat persoalan kepengurusan Koperasi Serba Usaha Sejahtera Bersama yang berdampak terhadap kepastian pembagian hasil kepada anggota. Kondisi tersebut menunjukkan bahwa akses terhadap kegiatan ekonomi belum tentu secara otomatis menjamin manfaat dapat diterima secara merata oleh anggota.",
+    items: ["X11","X12","X13","X14"]
+  },
+  {
+    id: "C4",
+    variable_id: "X",
+    indicator_id: "X_Konsekuensi_Risiko",
+    judul: "Keadilan Konsekuensi dan Risiko",
+    intro: "Keadilan konsekuensi dan risiko berkaitan dengan pertimbangan terhadap dampak sosial, ekonomi, dan lingkungan serta keseimbangan penanganan risiko.",
+    kasus_judul: "Studi Kasus 4: Manfaat Ekonomi dan Risiko bagi Masyarakat",
+    kasus: "Perkebunan kelapa sawit dapat memberikan manfaat ekonomi melalui kegiatan usaha dan kemitraan dengan masyarakat. Namun, kegiatan perkebunan juga dapat menimbulkan konsekuensi sosial, ekonomi, dan lingkungan. Oleh karena itu, keadilan kebijakan tidak hanya dapat dilihat dari pihak yang memperoleh manfaat, tetapi juga dari bagaimana risiko dan dampak yang muncul diperhatikan serta ditangani.",
+    items: ["X15","X16","X17","X18","X19"]
+  },
+  {
+    id: "D1",
+    variable_id: "Y",
+    indicator_id: "Y_Penilaian",
+    judul: "Penilaian terhadap Kebijakan",
+    intro: "Bagian ini berkaitan dengan penilaian Anda secara kognitif terhadap pelaksanaan kebijakan perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan.",
+    kasus_judul: "Studi Kasus 5: Penilaian terhadap Pelaksanaan Kebijakan",
+    kasus: "Di Kabupaten Seruyan terdapat kondisi yang menunjukkan adanya upaya memperluas akses masyarakat melalui koperasi, tetapi juga terdapat persoalan dalam pelaksanaan kemitraan, seperti tuntutan realisasi plasma dan persoalan tata kelola koperasi. Kondisi tersebut menunjukkan bahwa penilaian terhadap suatu kebijakan tidak cukup hanya melihat tujuan kebijakan, tetapi juga perlu melihat bagaimana kebijakan tersebut dilaksanakan dan manfaatnya dirasakan masyarakat.",
+    items: ["Y1","Y2","Y3","Y4"]
+  },
+  {
+    id: "D2",
+    variable_id: "Y",
+    indicator_id: "Y_Penerimaan",
+    judul: "Penerimaan terhadap Kebijakan",
+    intro: "Bagian ini berkaitan dengan sejauh mana Anda dapat menerima kebijakan perluasan akses koperasi berdasarkan transparansi dan manfaat yang dirasakan masyarakat.",
+    kasus_judul: "Studi Kasus 6: Penerimaan terhadap Kebijakan",
+    kasus: "Adanya program plasma dan keterlibatan koperasi menunjukkan adanya upaya untuk memberikan kesempatan kepada masyarakat dalam memperoleh manfaat dari kegiatan perkebunan sawit. Namun, adanya tuntutan masyarakat mengenai realisasi plasma juga menunjukkan bahwa penerimaan terhadap kebijakan dapat berkaitan dengan bagaimana kebijakan tersebut dilaksanakan di lapangan.",
+    items: ["Y5","Y6","Y7"]
+  },
+  {
+    id: "D3",
+    variable_id: "Y",
+    indicator_id: "Y_Dukungan",
+    judul: "Dukungan terhadap Pelaksanaan dan Pengawasan",
+    intro: "Bagian ini berkaitan dengan dukungan Anda terhadap pengawasan kemitraan, perlindungan hak masyarakat, dan keberlanjutan kebijakan.",
+    kasus_judul: "Studi Kasus 7: Dukungan terhadap Pelaksanaan dan Pengawasan",
+    kasus: "Berbagai dinamika dalam kemitraan perkebunan sawit di Kabupaten Seruyan menunjukkan bahwa perluasan akses koperasi membutuhkan pengawasan dan evaluasi agar pelaksanaannya sesuai dengan tujuan kebijakan. Persoalan terkait realisasi plasma dan tata kelola koperasi juga menunjukkan pentingnya peran pemerintah dan pihak terkait dalam memastikan hak masyarakat dan anggota koperasi terlindungi.",
+    items: ["Y8","Y9","Y10"]
+  }
 ];
 
-const E1_OPSI = ["Proses dan transparansi","Kesetaraan kesempatan","Pembagian manfaat","Perlindungan masyarakat","Perlindungan lingkungan","Pengawasan","Peningkatan kapasitas koperasi"];
-const E2_Q = "Jika terdapat perbedaan kemampuan antara koperasi besar dan koperasi kecil dalam memanfaatkan kebijakan, apa yang menurut Anda perlu dilakukan?";
-const E3_Q = "Setelah membaca informasi dan kasus singkat dalam kuesioner ini, bagaimana Anda melihat isu perluasan akses koperasi pada sektor pertambangan dan sawit di Kalimantan Tengah?";
-const E1_Q = "Menurut Anda, aspek apa yang paling penting diperhatikan agar perluasan akses koperasi pada sektor pertambangan dan sawit dapat berjalan secara adil? (boleh lebih dari satu)";
+/* D. PERTANYAAN REFLEKTIF (R1–R3) */
+const R1_OPSI = [
+  "Transparansi dan keterbukaan informasi",
+  "Kesetaraan kesempatan",
+  "Pembagian manfaat",
+  "Perlindungan masyarakat",
+  "Perlindungan lingkungan",
+  "Pengawasan",
+  "Peningkatan kapasitas koperasi"
+];
+const R1_Q = "Menurut Anda, aspek apa yang paling penting diperhatikan agar perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan dapat berjalan secara adil?";
+const R2_Q = "Berdasarkan kondisi kemitraan dan kebun plasma di Kabupaten Seruyan yang telah dijelaskan, menurut Anda apa yang perlu dilakukan agar koperasi masyarakat memiliki kesempatan yang lebih adil dalam memperoleh akses pada kegiatan perkebunan sawit?";
+const R3_Q = "Setelah membaca gambaran kasus dalam kuesioner ini, bagaimana pendapat Anda mengenai perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan?";
 
-/* Struktur variabel default — dapat diedit admin di Pengaturan */
+/* SINGLE SOURCE OF TRUTH: QUESTION_SCHEMA */
+const QUESTION_SCHEMA = [
+  ...DEMOGRAFI.map(d=>({ id:d.id, section:"IDENT", type:d.t, label:d.q, options:d.o, other:!!d.other, required:true })),
+  ...ITEMS.map(it=>{
+    const bg = BAGIAN.find(b=>b.items.includes(it));
+    return { id:it, variable:bg.variable_id, indicator:bg.indicator_id, section:bg.id, type:"likert", score:true, label:P_TEKS[it], required:true };
+  }),
+  { id:"R1", section:"REFLECTIVE", type:"checkbox", label:R1_Q, options:R1_OPSI, other:true, required:true },
+  { id:"R2", section:"REFLECTIVE", type:"textarea", label:R2_Q, required:false },
+  { id:"R3", section:"REFLECTIVE", type:"textarea", label:R3_Q, required:false }
+];
+
+/* Struktur variabel & indikator statistik default */
 const STRUKTUR_DEFAULT = {
   variabel:[
    {id:"X",nama:"Keadilan Kebijakan",indikator:[
-     {id:"X1",nama:"Proses dan Pemberian Akses",items:["P1","P2","P3","P4"]},
-     {id:"X2",nama:"Kesempatan Koperasi",items:["P5","P6","P7","P8","P9"]},
-     {id:"X3",nama:"Pembagian Manfaat",items:["P10","P11","P12","P13","P14"]},
-     {id:"X4",nama:"Dampak dan Risiko",items:["P15","P16","P17","P18","P19"]}]},
-   {id:"Y",nama:"Sikap Mahasiswa terhadap Kebijakan",indikator:[
-     {id:"Y1",nama:"Penilaian/Kognitif",items:["P20","P21","P22"]},
-     {id:"Y2",nama:"Penerimaan",items:["P23","P24","P25"]},
-     {id:"Y3",nama:"Dukungan/Pengawasan-Evaluasi",items:["P26","P27","P28","P29"]}]}
+     {id:"X_Prosedural",nama:"Keadilan Prosedural",items:["X1","X2","X3","X4","X5"]},
+     {id:"X_Kesempatan",nama:"Keadilan Kesempatan",items:["X6","X7","X8","X9","X10"]},
+     {id:"X_Distribusi",nama:"Keadilan Distribusi Manfaat",items:["X11","X12","X13","X14"]},
+     {id:"X_Konsekuensi_Risiko",nama:"Keadilan Konsekuensi dan Risiko",items:["X15","X16","X17","X18","X19"]}]},
+   {id:"Y",nama:"Sikap Mahasiswa",indikator:[
+     {id:"Y_Penilaian",nama:"Penilaian",items:["Y1","Y2","Y3","Y4"]},
+     {id:"Y_Penerimaan",nama:"Penerimaan",items:["Y5","Y6","Y7"]},
+     {id:"Y_Dukungan",nama:"Dukungan",items:["Y8","Y9","Y10"]}]}
   ],
-  reverse:{},            // {P8:true} bila admin memutuskan membalik
-  bobot:{},              // {P1:1.5}
-  ditandai:["P8","P14"], // item "perlu dicek", TIDAK dibalik otomatis
+  reverse:{},
+  bobot:{},
+  ditandai:[],
   kategori:{mode:"mean",
     rentang:[{min:1.00,max:1.80,label:"Sangat Rendah"},{min:1.81,max:2.60,label:"Rendah"},
              {min:2.61,max:3.40,label:"Sedang"},{min:3.41,max:4.20,label:"Tinggi"},
@@ -1208,27 +1334,36 @@ window.addEventListener("online", ()=>{ Antrian.alirkan(); });
 const PETA = {
   section(qid){
     if(/^D\d+$/.test(qid)) return "IDENT";
-    if(/^E\d+$/.test(qid)) return "ESSAY";
+    if(/^(R|E)\d+$/.test(qid)) return "REFLECTIVE";
     const b = BAGIAN.find(b=>b.items.indexOf(qid)>=0);
-    return b ? b.id : null;
+    if(b) return b.id;
+    // Fallback kompatibilitas data lama
+    if(/^P[1-4]$/.test(qid)) return "C1";
+    if(/^P[5-9]$/.test(qid)) return "C2";
+    if(/^P(1[0-4])$/.test(qid)) return "C3";
+    if(/^P(1[5-9])$/.test(qid)) return "C4";
+    if(/^P(2[0-2])$/.test(qid)) return "D1";
+    if(/^P(2[3-5])$/.test(qid)) return "D2";
+    if(/^P(2[6-9])$/.test(qid)) return "D3";
+    return null;
   },
   keBaris(responseId, qid, nilai, data){
     const r = { response_id:responseId, question_id:qid, section_id:this.section(qid),
                 answer_value:null, answer_numeric:null, answer_text:null, answer_json:null };
-    if(/^P\d+$/.test(qid)){
+    if(/^(X|Y|P)\d+$/.test(qid)){
       const n=Number(nilai);
       r.answer_numeric = isFinite(n)&&nilai!=null&&nilai!=="" ? n : null;
       r.answer_value   = r.answer_numeric==null ? null : String(r.answer_numeric);
-    } else if(qid==="E1"){
+    } else if(qid==="R1" || qid==="E1"){
       const a = Array.isArray(nilai)?nilai:[];
       r.answer_json  = a;
       r.answer_value = a.join(" | ");
-      r.answer_text  = (data&&data.E1_lainnya) || null;
-    } else if(qid==="E2"||qid==="E3"){
+      r.answer_text  = (data && (data.R1_lainnya || data.E1_lainnya)) || null;
+    } else if(qid==="R2" || qid==="R3" || qid==="E2" || qid==="E3"){
       r.answer_text  = (nilai==null?"":String(nilai)) || null;
     } else {
       r.answer_value = (nilai==null?"":String(nilai)) || null;
-      r.answer_text  = (data&&data[qid+"_lainnya"]) || null;
+      r.answer_text  = (data && data[qid+"_lainnya"]) || null;
     }
     return r;
   },
@@ -1236,24 +1371,35 @@ const PETA = {
     const daftar=[];
     DEMOGRAFI.forEach(d=>{ if(data[d.id]!=null&&data[d.id]!=="") daftar.push(this.keBaris(responseId,d.id,data[d.id],data)); });
     ITEMS.forEach(it=>{ if(data[it]!=null&&data[it]!=="") daftar.push(this.keBaris(responseId,it,data[it],data)); });
-    if((data.E1||[]).length) daftar.push(this.keBaris(responseId,"E1",data.E1,data));
-    ["E2","E3"].forEach(k=>{ if((data[k]||"").trim()) daftar.push(this.keBaris(responseId,k,data[k],data)); });
+    // Reflektif v2 (R1-R3) & fallback v1 (E1-E3)
+    const r1 = data.R1 || data.E1;
+    if(Array.isArray(r1) && r1.length) daftar.push(this.keBaris(responseId,"R1",r1,data));
+    const r2 = data.R2 || data.E2;
+    if((r2||"").trim()) daftar.push(this.keBaris(responseId,"R2",r2,data));
+    const r3 = data.R3 || data.E3;
+    if((r3||"").trim()) daftar.push(this.keBaris(responseId,"R3",r3,data));
     return daftar;
   },
   keData(baris){
     const d={};
     (baris||[]).forEach(a=>{
       const q=a.question_id;
-      if(/^P\d+$/.test(q)){
+      if(/^(X|Y|P)\d+$/.test(q)){
         const v = a.answer_numeric!=null ? Number(a.answer_numeric)
                 : (a.answer_value!=null && a.answer_value!=="" ? Number(a.answer_value) : null);
         if(v!=null && isFinite(v)) d[q]=v;
-      } else if(q==="E1"){
-        d.E1 = Array.isArray(a.answer_json) ? a.answer_json
+      } else if(q==="R1" || q==="E1"){
+        const parsed = Array.isArray(a.answer_json) ? a.answer_json
              : (a.answer_value ? String(a.answer_value).split(" | ").filter(Boolean) : []);
-        if(a.answer_text) d.E1_lainnya=a.answer_text;
-      } else if(q==="E2"||q==="E3"){
-        d[q] = a.answer_text || a.answer_value || "";
+        d.R1 = parsed;
+        d.E1 = parsed; // alias backward compatibility
+        if(a.answer_text){ d.R1_lainnya = a.answer_text; d.E1_lainnya = a.answer_text; }
+      } else if(q==="R2" || q==="E2"){
+        const val = a.answer_text || a.answer_value || "";
+        d.R2 = val; d.E2 = val;
+      } else if(q==="R3" || q==="E3"){
+        const val = a.answer_text || a.answer_value || "";
+        d.R3 = val; d.E3 = val;
       } else {
         d[q] = a.answer_value || "";
         if(a.answer_text) d[q+"_lainnya"]=a.answer_text;
@@ -1264,19 +1410,19 @@ const PETA = {
   keProfil(responseId, data){
     return { response_id:responseId,
       gender:        data.D1||null,
-      age:           null,                 // kuesioner ini memakai rentang usia, bukan angka
+      age:           null,
       age_group:     data.D2||null,
       institution:   data.D3||null,
-      education:     data.D4||null,        // Fakultas / Program Studi
+      education:     data.D4||null,
       semester:      data.D5||null,
       domicile:      data.D6||null,
-      occupation:    null,                 // tidak ditanyakan pada kuesioner ini
+      occupation:    null,
       heard_coop:    data.D7||null,
       info_frequency:data.D8||null,
       info_source:   data.D9||null,
       heard_policy:  data.D10||null,
       other_values:  { D5_lainnya:data.D5_lainnya||null, D6_lainnya:data.D6_lainnya||null,
-                       D9_lainnya:data.D9_lainnya||null, E1_lainnya:data.E1_lainnya||null } };
+                       D9_lainnya:data.D9_lainnya||null, R1_lainnya:(data.R1_lainnya||data.E1_lainnya||null) } };
   }
 };
 
@@ -1340,7 +1486,7 @@ const Respon = {
     try{
       await supabaseRequest("buat-draft", c=>c.from("survey_responses").insert({
         id: calon, respondent_code: this.kode, owner_id: pemilik,
-        started_at: mulai.toISOString(), status:"draft", progress:this.progress
+        started_at: mulai.toISOString(), status:"draft", progress:Object.assign({},this.progress,{version:Q_VERSI})
       }), {ulang:1});
       this.id = calon; this.mulaiAt = mulai.getTime();
       return this.id;
@@ -1636,8 +1782,11 @@ async function muatRows(){
   const grup={}; jawab.forEach(a=>{ (grup[a.response_id]=grup[a.response_id]||[]).push(a); });
   return resp.map(r=>{
     const tags = r.tags || [];
+    const dData = PETA.keData(grup[r.id]||[]);
+    const isV2 = r.questionnaire_version === "v2" || (r.progress && r.progress.version === "v2") || Object.keys(dData).some(k=>/^X\d+$/.test(k));
     return {
       id:r.id,
+      questionnaire_version: isV2 ? "v2" : "v1",
       created_at: r.submitted_at || r.created_at || r.started_at,
       started_at: r.started_at, submitted_at: r.submitted_at,
       session_token: r.respondent_code,
@@ -2083,7 +2232,7 @@ function renderLanding(el){
       <p class="lp-sub">${esc(CONFIG.INSTITUSI)}</p>
       <div class="lp-chips">
         <span class="lp-chip">◷ <b>±10–15</b> menit</span>
-        <span class="lp-chip">▦ <b>5</b> bagian pertanyaan</span>
+        <span class="lp-chip">▦ <b>4</b> instrumen (42 butir)</span>
         <span class="lp-chip">♧ Anonim</span>
       </div>
       <a class="lp-cta big" href="#/kuesioner">${stkIn("floret","22px")} Mulai Mengisi Kuesioner <span class="arw">→</span></a>
@@ -2114,7 +2263,7 @@ function renderLanding(el){
     <div class="lp-grid2">
       <article class="lp-card rv pixcorner">
         <h3>${stkIn("book","34px","a-floatMed")} Tentang penelitian</h3>
-        <p>Penelitian ini menelaah penilaian mahasiswa mengenai keadilan kebijakan dalam perluasan akses koperasi pada sektor pertambangan dan perkebunan kelapa sawit di Kalimantan Tengah, serta sikap mahasiswa terhadap kebijakan tersebut.</p>
+        <p>Penelitian ini menelaah penilaian mahasiswa mengenai keadilan kebijakan dalam perluasan akses koperasi perkebunan kelapa sawit di Kabupaten Seruyan, serta pengaruhnya terhadap sikap mahasiswa atas kebijakan tersebut.</p>
         <p>Penilaian keadilan dilihat dari empat sisi: proses pemberian akses, kesetaraan kesempatan, pembagian manfaat, serta dampak dan risiko.</p>
         ${stk("violets","corner c-br a-sway")}
       </article>
@@ -2132,7 +2281,7 @@ function renderLanding(el){
       <div class="lp-stat rv"><span class="ic">${stkIn("teacup","52px","a-bob")}${kilau(["peach","gold"],5,3)}</span>
         <span><span class="n">±12</span><span class="l">Menit pengerjaan</span></span></div>
       <div class="lp-stat rv"><span class="ic">${stkIn("books","52px","a-floatMed")}${kilau(["mint","lavender"],5,17)}</span>
-        <span><span class="n">5</span><span class="l">Bagian pertanyaan</span></span></div>
+        <span><span class="n">42</span><span class="l">Total butir instrumen</span></span></div>
       <div class="lp-stat rv"><span class="ic">${stkIn("book","52px","a-floatSlow")}${kilau(["lavender","sky"],5,29)}</span>
         <span><span class="n">29</span><span class="l">Pernyataan Likert</span></span></div>
       <div class="lp-stat rv"><span class="ic">${stkIn("bottle","44px","a-bob")}${kilau(["sky","pink"],5,37)}</span>
@@ -2307,7 +2456,16 @@ const Survey = {
     BAGIAN.forEach(b=>l.push({t:"bagian",b}));
     l.push({t:"essay"},{t:"tinjau"});
     return l; },
-  jumlahTerisi(){ return ITEMS.filter(i=>this.data[i]!=null).length; },
+  jumlahTerisi(){
+    let c = 0;
+    DEMOGRAFI.forEach(d => { if((this.data[d.id]||"").trim()) c++; });
+    ITEMS.forEach(it => { if(this.data[it] != null) c++; });
+    if((this.data.R1||[]).length) c++;
+    if((this.data.R2||"").trim()) c++;
+    if((this.data.R3||"").trim()) c++;
+    return c;
+  },
+  totalItems(){ return 42; },
   async render(el){
     if(K.struktur.survei.status==="closed"){
       el.innerHTML=`<div class="wrap" style="max-width:640px;padding:80px 20px;position:relative;z-index:1">
@@ -2341,7 +2499,7 @@ const Survey = {
       <div class="card rise" style="text-align:center">
         <img src="${STK.envelope}" alt="" aria-hidden="true" style="width:92px" class="a-floatSlow">
         <h2 style="margin-top:10px">Masih ada jawaban yang tersimpan</h2>
-        <p style="margin-inline:auto">Anda sudah mengisi ${terisi} dari ${ITEMS.length} pernyataan pada perangkat ini.
+        <p style="margin-inline:auto">Anda sudah mengisi ${terisi} dari 42 item instrumen pada perangkat ini.
         Lanjutkan dari tempat terakhir, atau mulai dari awal.</p>
         <div class="nav-row" style="justify-content:center">
           <button class="btn ghost" id="draft-ulang">Mulai ulang</button>
@@ -2359,16 +2517,16 @@ const Survey = {
   },
   labelLangkah(cur){
     if(cur.t==="pengantar") return "Kata pengantar";
-    if(cur.t==="identitas") return "Identitas responden";
-    if(cur.t==="petunjuk") return "Petunjuk pengisian";
-    if(cur.t==="essay") return "Tambahan reflektif";
+    if(cur.t==="identitas") return "Bagian A · Identitas responden (10 butir)";
+    if(cur.t==="petunjuk") return "Bagian B · Petunjuk pengisian";
+    if(cur.t==="essay") return "Bagian E · Pertanyaan Reflektif (R1–R3)";
     if(cur.t==="tinjau") return "Tinjau & kirim";
-    const i=BAGIAN.indexOf(cur.b)+1;
-    return `Bagian ${i} dari ${BAGIAN.length} \u00b7 ${cur.b.judul}`;
+    const vlabel = cur.b.variable_id === "X" ? "Variabel X" : "Variabel Y";
+    return `Bagian ${cur.b.id} (${vlabel}) · ${cur.b.judul}`;
   },
   draw(el){
     const steps=this.langkah(); const cur=steps[this.step];
-    const terisi=this.jumlahTerisi(); const pct=Math.round(terisi/ITEMS.length*100);
+    const terisi=this.jumlahTerisi(); const total=this.totalItems(); const pct=Math.round(terisi/total*100);
     el.innerHTML=`
     <div class="q-head no-print"><div class="wrap" style="max-width:880px">
       <div class="q-meta">
@@ -2377,7 +2535,7 @@ const Survey = {
           <span class="q-crumb">${esc(this.labelLangkah(cur))}</span>
         </div>
         <div class="grp">
-          <span class="q-count">Pertanyaan ${terisi} / ${ITEMS.length} \u00b7 ${pct}%</span>
+          <span class="q-count">Progress ${terisi} / ${total} item (${pct}%)</span>
           <span class="savestate" id="savestate">\u2713 Tersimpan</span>
           ${Tema.tombol()}
         </div>
@@ -2566,58 +2724,98 @@ const Survey = {
   },
   /* perbarui bar, kupu-kupu penanda, dan tanda bagian selesai */
   majuProgres(b,body,diam){
-    const terisi=this.jumlahTerisi(); const pct=Math.round(terisi/ITEMS.length*100);
+    const terisi=this.jumlahTerisi(); const total=this.totalItems(); const pct=Math.round(terisi/total*100);
     const bar=document.getElementById("qbar");
     if(bar){ const i=bar.querySelector("i"); if(i) i.style.width=pct+"%";
       if(!diam){ bar.classList.remove("pulse"); void bar.offsetWidth; bar.classList.add("pulse"); } }
     const m=document.querySelector(".marker");
     if(m) m.style.left=Math.max(3,Math.min(97,pct))+"%";
     const c=document.querySelector(".q-count");
-    if(c) c.textContent=`Pertanyaan ${terisi} / ${ITEMS.length} \u00b7 ${pct}%`;
+    if(c) c.textContent=`Progress ${terisi} / ${total} item (${pct}%)`;
     const slot=$("#secdone",body);
     if(slot){ const lengkap=b.items.every(it=>this.data[it]!=null);
       slot.innerHTML = lengkap
         ? `<div class="sec-done">\ud83c\udf38 Bagian ini sudah lengkap \u2014 lanjut ke bagian berikutnya</div>` : ""; }
   },
   stepEssay(body){
-    const sel=this.data.E1||[];
-    body.innerHTML=`
+    const sel = this.data.R1 || [];
+    body.innerHTML = `
       <section class="sec-intro">
-        <span class="eyebrow">\u273f Bagian D</span>
-        <h2>Tambahan reflektif</h2>
-        <p>Tiga pertanyaan terakhir. Jawaban bebas Anda membantu menjelaskan angka yang sudah terkumpul.</p>
-        <span class="count">\ud83d\udcdd 1 pilihan + 2 jawaban bebas</span>
+        <span class="eyebrow">✿ Bagian E</span>
+        <h2>Pertanyaan Reflektif</h2>
+        <p>Tiga pertanyaan penutup untuk menggali perspektif kualitatif Anda mengenai perluasan akses koperasi sawit di Kabupaten Seruyan.</p>
+        <span class="count">📝 1 pilihan ganda + 2 uraian reflektif</span>
         <img class="art" src="${STK.ribbon}" alt="" aria-hidden="true">
         <img class="art2" src="${STK.bow}" alt="" aria-hidden="true">
       </section>
       <div>
-      <div class="qcard" id="f-E1">
-        <div class="qhead"><span class="qnum">E1</span><p class="qtext">${esc(E1_Q)}</p></div>
-        ${E1_OPSI.map(o=>`<label class="opt"><input type="checkbox" name="E1" value="${esc(o)}" ${sel.includes(o)?"checked":""} aria-label="${esc(o)}">${this.opsiLabel("E1",o)}</label>`).join("")}
-        <label class="opt"><input type="checkbox" name="E1" value="Lainnya" ${sel.includes("Lainnya")?"checked":""} aria-label="Lainnya">${this.opsiLabel("E1","Lainnya")}</label>
-        <input type="text" id="lain-E1" class="${sel.includes("Lainnya")?"":"hidden"}" placeholder="Tuliskan aspek lain" value="${esc(this.data.E1_lainnya||"")}">
-        <div class="errslot"></div></div>
-      <div class="qcard" id="f-E2">
-        <div class="qhead"><span class="qnum">E2</span><p class="qtext">${esc(E2_Q)}</p></div>
-        <textarea name="E2" aria-label="${esc(E2_Q)}" placeholder="Tulis jawaban Anda di sini (opsional)">${esc(this.data.E2||"")}</textarea></div>
-      <div class="qcard" id="f-E3">
-        <div class="qhead"><span class="qnum">E3</span><p class="qtext">${esc(E3_Q)}</p></div>
-        <textarea name="E3" aria-label="${esc(E3_Q)}" placeholder="Tulis jawaban Anda di sini (opsional)">${esc(this.data.E3||"")}</textarea></div>
-      <p class="note">E2 dan E3 bersifat opsional, tetapi jawaban Anda sangat membantu penelitian ini.</p>
+      <div class="qcard ${sel.length ? "answered" : ""}" id="f-R1">
+        <div class="qhead"><span class="qnum">R1</span><p class="qtext">${esc(R1_Q)}</p></div>
+        <p style="font-size:.82rem;color:var(--text-muted);margin:0 0 10px 56px">Responden boleh memilih lebih dari satu aspek:</p>
+        <div style="margin-left:56px">
+          ${R1_OPSI.map(o => `<label class="opt"><input type="checkbox" name="R1" value="${esc(o)}" ${sel.includes(o) ? "checked" : ""} aria-label="${esc(o)}">${this.opsiLabel("R1", o)}</label>`).join("")}
+          <label class="opt"><input type="checkbox" name="R1" value="Lainnya" ${sel.includes("Lainnya") ? "checked" : ""} aria-label="Lainnya">${this.opsiLabel("R1", "Lainnya")}</label>
+          <input type="text" id="lain-R1" class="${sel.includes("Lainnya") ? "" : "hidden"}" placeholder="Tuliskan aspek lain yang menurut Anda penting..." value="${esc(this.data.R1_lainnya || "")}">
+        </div>
+        <div class="errslot"></div>
+      </div>
+
+      <div class="qcard ${(this.data.R2 || "").trim() ? "answered" : ""}" id="f-R2">
+        <div class="qhead"><span class="qnum">R2</span><p class="qtext">${esc(R2_Q)}</p></div>
+        <div style="margin-left:56px">
+          <textarea name="R2" rows="4" aria-label="${esc(R2_Q)}" placeholder="Tuliskan pandangan atau langkah yang menurut Anda perlu dilakukan...">${esc(this.data.R2 || "")}</textarea>
+        </div>
+      </div>
+
+      <div class="qcard ${(this.data.R3 || "").trim() ? "answered" : ""}" id="f-R3">
+        <div class="qhead"><span class="qnum">R3</span><p class="qtext">${esc(R3_Q)}</p></div>
+        <div style="margin-left:56px">
+          <textarea name="R3" rows="4" aria-label="${esc(R3_Q)}" placeholder="Tuliskan pendapat atau evaluasi Anda...">${esc(this.data.R3 || "")}</textarea>
+        </div>
+      </div>
+
+      <p class="note" style="margin-top:14px">Pertanyaan reflektif R2 dan R3 membantu kami memahami konteks di balik penilaian kuantitatif Anda.</p>
       ${this.nav()}</div>`;
-    $$('[name=E1]',body).forEach(c=>c.onchange=()=>{
-      this.data.E1=$$('[name=E1]',body).filter(x=>x.checked).map(x=>x.value);
-      $("#lain-E1",body).classList.toggle("hidden",!this.data.E1.includes("Lainnya"));
-      $("#f-E1 .errslot",body).innerHTML=""; this.saveDraft("E1"); });
-    $("#lain-E1",body).oninput=e=>{ this.data.E1_lainnya=e.target.value; this.saveDraft("E1"); };
-    ["E2","E3"].forEach(k=>{ $(`[name=${k}]`,body).oninput=e=>{ this.data[k]=e.target.value; this.saveDraft(k); }; });
-    this.bind(body,()=>{ const s=this.data.E1||[];
-      if(!s.length){ $("#f-E1 .errslot",body).innerHTML=`<div class="err">✿ Pilih minimal satu aspek pada E1.</div>`;
-        $("#f-E1",body).classList.add("invalid"); $("#f-E1",body).scrollIntoView({behavior:"smooth",block:"center"}); return false; }
-      if(s.includes("Lainnya") && !(this.data.E1_lainnya||"").trim()){
-        $("#f-E1 .errslot",body).innerHTML=`<div class="err">✿ Mohon tuliskan aspek lain yang Anda maksud.</div>`; return false; }
-      return true; });
+
+    $$('[name=R1]', body).forEach(c => c.onchange = () => {
+      this.data.R1 = $$('[name=R1]', body).filter(x => x.checked).map(x => x.value);
+      $("#lain-R1", body).classList.toggle("hidden", !this.data.R1.includes("Lainnya"));
+      $("#f-R1", body).classList.toggle("answered", this.data.R1.length > 0);
+      $("#f-R1 .errslot", body).innerHTML = "";
+      this.saveDraft("R1");
+    });
+
+    $("#lain-R1", body).oninput = e => {
+      this.data.R1_lainnya = e.target.value;
+      this.saveDraft("R1");
+    };
+
+    ["R2", "R3"].forEach(k => {
+      $(`[name=${k}]`, body).oninput = e => {
+        this.data[k] = e.target.value;
+        $(`#f-${k}`, body).classList.toggle("answered", !!e.target.value.trim());
+        this.saveDraft(k);
+      };
+    });
+
+    this.bind(body, () => {
+      const s = this.data.R1 || [];
+      if (!s.length) {
+        $("#f-R1 .errslot", body).innerHTML = `<div class="err">✿ Pilih minimal satu aspek pada R1.</div>`;
+        $("#f-R1", body).classList.add("invalid");
+        $("#f-R1", body).scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+      }
+      if (s.includes("Lainnya") && !(this.data.R1_lainnya || "").trim()) {
+        $("#f-R1 .errslot", body).innerHTML = `<div class="err">✿ Mohon tuliskan aspek lain yang Anda maksud pada kolom teks.</div>`;
+        $("#f-R1", body).classList.add("invalid");
+        $("#lain-R1", body).focus();
+        return false;
+      }
+      return true;
+    });
   },
+
   stepTinjau(body){
     const kosong=ITEMS.filter(i=>this.data[i]==null);
     const dKosong=DEMOGRAFI.filter(d=>!(this.data[d.id]||"").trim());
@@ -2687,7 +2885,7 @@ const MENU=[
  {g:"Ringkasan",items:[["dashboard","Dashboard","✦"],["responden","Respon Responden","🦋"],["raw","Raw Data","🗂"],["kualitas","Kualitas Data","🔍"]]},
  {g:"Deskripsi",items:[["deskriptif","Statistik Deskriptif","📊"],["item","Analisis Item","🌿"],["indikator","Analisis Indikator","🍄"],["variabel","Analisis Variabel","🌸"],["kategori","Kategorisasi","🏷"],["crosstab","Cross Tabulation","🔀"]]},
  {g:"Uji Statistik",items:[["validitas","Uji Validitas","✔"],["reliabilitas","Uji Reliabilitas","♾"],["normalitas","Uji Normalitas","🔔"],["korelasi","Korelasi","🔗"],["regresi","Regresi","📈"],["beda","Uji T & ANOVA","⚖"],["chisq","Chi-Square","✕"]]},
- {g:"Kualitatif & Luaran",items:[["essay","Analisis Jawaban Essay","✍"],["grafik","Grafik","🎨"],["export","Export","⬇"],["laporan","Laporan Otomatis","📜"],["pengaturan","Pengaturan","⚙"]]},
+ {g:"Kualitatif & Luaran",items:[["essay","Pertanyaan Reflektif (R1–R3)","✍"],["grafik","Grafik","🎨"],["export","Export","⬇"],["laporan","Laporan Otomatis","📜"],["pengaturan","Pengaturan","⚙"]]},
  {g:"Simulasi",items:[["sintetis","Randomize Majority Picker","🎲"]]},
  {g:"Draft & Pemulihan",items:[["draft","Draft & Pemulihan","🛠"]]},
  {g:"E-Sertifikat",items:[["sertifikat","E-Sertifikat","🎓"]]}
@@ -3206,7 +3404,7 @@ Object.assign(Admin,{
         <p class="note" style="margin-top:10px">Nilai di atas dihitung dari <strong>skor total</strong> tiap responden pada variabel bersangkutan.</p></div></details>
       <details class="acc" open><summary>Per indikator (mean responden)</summary><div>
         ${this.tabel(head,ind.map(i=>baris(`${i.id} — ${i.nama}`,this.meanArr(f,i.items))))}</div></details>
-      <details class="acc" open><summary>Per item (P1–P29)</summary><div>
+      <details class="acc" open><summary>Per item (X1–X19, Y1–Y10)</summary><div>
         ${this.tabel(head,ITEMS.map(it=>baris(it,this.skorItemArr(f,it))))}</div></details>`;
   },
 
@@ -3440,7 +3638,7 @@ Object.assign(Admin,{
     if(f.length<3) return this.kosong(body,"Uji reliabilitas membutuhkan minimal 3 responden");
     const amb=K.struktur.ambangAlpha;
     const tafsir=a=>a>=0.9?"Sangat tinggi":a>=0.8?"Tinggi":a>=0.7?"Cukup":a>=0.6?"Dapat diterima":"Rendah";
-    const blok=[{id:"ALL",nama:"Keseluruhan (P1–P29)",items:ITEMS},
+    const blok=[{id:"ALL",nama:"Keseluruhan (29 Item Likert)",items:ITEMS},
       ...K.struktur.variabel.map(v=>({id:v.id,nama:"Variabel "+v.id+" — "+v.nama,items:K.itemsVar(v.id)})),
       ...K.semuaIndikator().map(i=>({id:i.id,nama:"Indikator "+i.id+" — "+i.nama,items:i.items}))];
     const hasil=blok.map(b=>{ const rows=this.lengkapUntuk(f,b.items);
@@ -3726,13 +3924,13 @@ const STOPWORD=new Set("yang dan di ke dari untuk dengan pada adalah itu ini ata
 Object.assign(Admin,{
   v_essay(body,f){
     if(!f.length) return this.kosong(body);
-    const e1={}; [...E1_OPSI,"Lainnya"].forEach(o=>e1[o]=0);
+    const r1={}; [...R1_OPSI,"Lainnya"].forEach(o=>r1[o]=0);
     let pemilih=0;
-    f.forEach(r=>{ const s=(r.data||{}).E1||[]; if(s.length) pemilih++;
-      s.forEach(o=>{ if(e1[o]!=null) e1[o]++; else e1[o]=1; }); });
-    const lainnya=f.map(r=>(r.data||{}).E1_lainnya).filter(v=>v&&v.trim());
-    const teksE2=f.map(r=>({id:r.id,t:((r.data||{}).E2||"").trim(),w:r.created_at,tags:r.tags||[]})).filter(x=>x.t);
-    const teksE3=f.map(r=>({id:r.id,t:((r.data||{}).E3||"").trim(),w:r.created_at,tags:r.tags||[]})).filter(x=>x.t);
+    f.forEach(r=>{ const s=(r.data||{}).R1||(r.data||{}).E1||[]; if(s.length) pemilih++;
+      s.forEach(o=>{ if(r1[o]!=null) r1[o]++; else r1[o]=1; }); });
+    const lainnya=f.map(r=>(r.data||{}).R1_lainnya||(r.data||{}).E1_lainnya).filter(v=>v&&v.trim());
+    const teksR2=f.map(r=>({id:r.id,t:((r.data||{}).R2||(r.data||{}).E2||"").trim(),w:r.created_at,tags:r.tags||[]})).filter(x=>x.t);
+    const teksR3=f.map(r=>({id:r.id,t:((r.data||{}).R3||(r.data||{}).E3||"").trim(),w:r.created_at,tags:r.tags||[]})).filter(x=>x.t);
     const kata=(arr)=>{ const c={};
       arr.forEach(x=>x.t.toLowerCase().replace(/[^a-zà-ÿ\s]/g," ").split(/\s+/)
         .filter(w=>w.length>3&&!STOPWORD.has(w)).forEach(w=>c[w]=(c[w]||0)+1));
@@ -3749,31 +3947,32 @@ Object.assign(Admin,{
         <p style="margin:8px 0 0">${esc(x.t)}</p></div>`).join("")
       : `<div class="empty"><div class="big">🌷</div><p>Belum ada jawaban ${label}</p></div>`;
     body.innerHTML=`
-      <div class="sect-title"><h3>E1 — Aspek yang dinilai paling penting</h3></div>
+      <div class="sect-title"><h3>R1 — Aspek yang Dinilai Paling Penting</h3></div>
       ${this.tabel(["Aspek",{t:"Frekuensi",num:1},{t:"% dari responden",num:1},{t:"% dari seluruh pilihan",num:1}],
-        Object.entries(e1).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),{v:String(v),cls:"num"},
+        Object.entries(r1).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),{v:String(v),cls:"num"},
           {v:pf(pemilih?v/pemilih*100:0),cls:"num"},
-          {v:pf(Object.values(e1).reduce((a,b)=>a+b,0)?v/Object.values(e1).reduce((a,b)=>a+b,0)*100:0),cls:"num"}]))}
-      <p class="note" style="margin:10px 0">E1 boleh dipilih lebih dari satu, sehingga persentase terhadap responden dapat berjumlah lebih dari 100%. Dihitung dari ${pemilih} responden yang memilih.
+          {v:pf(Object.values(r1).reduce((a,b)=>a+b,0)?v/Object.values(r1).reduce((a,b)=>a+b,0)*100:0),cls:"num"}]))}
+      <p class="note" style="margin:10px 0">R1 boleh dipilih lebih dari satu aspek, sehingga persentase terhadap responden dapat melebihi 100%. Dihitung dari ${pemilih} responden yang mengisi R1.
       ${lainnya.length?` Isian “Lainnya”: ${lainnya.map(esc).join("; ")}.`:""}</p>
-      <div style="margin-bottom:22px">${this.box("chE1","Frekuensi aspek E1",320)}</div>
-      <div class="topbar"><input type="text" id="cari" placeholder="Cari kata kunci di jawaban E2 & E3…" style="max-width:360px"></div>
-      <details class="acc" open><summary>E2 — ${teksE2.length} jawaban</summary><div>
-        <p style="font-size:.88rem;color:var(--tinta-3)">${esc(E2_Q)}</p>
-        <h4 style="margin-top:12px">Frekuensi kata</h4>${cloud(kata(teksE2))}
-        <h4 style="margin-top:16px">Daftar jawaban</h4><div id="listE2">${daftar(teksE2,"E2")}</div></div></details>
-      <details class="acc" open><summary>E3 — ${teksE3.length} jawaban</summary><div>
-        <p style="font-size:.88rem;color:var(--tinta-3)">${esc(E3_Q)}</p>
-        <h4 style="margin-top:12px">Frekuensi kata</h4>${cloud(kata(teksE3))}
-        <h4 style="margin-top:16px">Daftar jawaban</h4><div id="listE3">${daftar(teksE3,"E3")}</div></div></details>`;
-    this.chart("chE1",{type:"bar",data:{labels:Object.keys(e1),
-      datasets:[{label:"Frekuensi",data:Object.values(e1),backgroundColor:this.palet}]},
+      <div style="margin-bottom:22px">${this.box("chR1","Frekuensi Aspek R1",320)}</div>
+      <div class="topbar"><input type="text" id="cari" placeholder="Cari kata kunci di jawaban R2 & R3…" style="max-width:360px"></div>
+      <details class="acc" open><summary>R2 — ${teksR2.length} jawaban</summary><div>
+        <p style="font-size:.88rem;color:var(--tinta-3)">${esc(R2_Q)}</p>
+        <h4 style="margin-top:12px">Frekuensi kata kunci</h4>${cloud(kata(teksR2))}
+        <h4 style="margin-top:16px">Daftar jawaban</h4><div id="listR2">${daftar(teksR2,"R2")}</div></div></details>
+      <details class="acc" open><summary>R3 — ${teksR3.length} jawaban</summary><div>
+        <p style="font-size:.88rem;color:var(--tinta-3)">${esc(R3_Q)}</p>
+        <h4 style="margin-top:12px">Frekuensi kata kunci</h4>${cloud(kata(teksR3))}
+        <h4 style="margin-top:16px">Daftar jawaban</h4><div id="listR3">${daftar(teksR3,"R3")}</div></div></details>`;
+    this.chart("chR1",{type:"bar",data:{labels:Object.keys(r1),
+      datasets:[{label:"Frekuensi",data:Object.values(r1),backgroundColor:this.palet}]},
       options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
     $("#cari").oninput=e=>{ const q=e.target.value.toLowerCase();
       const filt=(arr,el)=>{ const sub=q?arr.filter(x=>x.t.toLowerCase().includes(q)):arr;
         $("#"+el).innerHTML=daftar(sub,el.slice(4)); };
-      filt(teksE2,"listE2"); filt(teksE3,"listE3"); };
+      filt(teksR2,"listR2"); filt(teksR3,"listR3"); };
   },
+
   async tag(id){ const r=this.rows.find(x=>x.id===id); if(!r) return;
     const t=prompt("Tag tema untuk jawaban ini (pisahkan dengan koma):",(r.tags||[]).join(", "));
     if(t===null) return;
@@ -3838,50 +4037,58 @@ Object.assign(Admin,{
 
   /* ---------- Export ---------- */
   matriksExport(f){
-    const head=["id","kode_responden","status","is_synthetic","synthetic_batch_id","started_at","submitted_at","timestamp","durasi_detik",...DEMOGRAFI.map(d=>d.id),
+    const head=["response_id","respondent_code","questionnaire_version","status","is_synthetic","synthetic_batch_id","started_at","submitted_at","created_at","durasi_detik",...DEMOGRAFI.map(d=>d.id),
       ...ITEMS, ...ITEMS.map(i=>i+"_skor"),
-      ...K.struktur.variabel.map(v=>"TOTAL_"+v.id),...K.struktur.variabel.map(v=>"MEAN_"+v.id),
-      ...K.struktur.variabel.map(v=>"KAT_"+v.id),
+      "TOTAL_X","TOTAL_Y","MEAN_X","MEAN_Y","KAT_X","KAT_Y",
+      ...K.semuaIndikator().map(i=>"TOTAL_"+i.id),
       ...K.semuaIndikator().map(i=>"MEAN_"+i.id),
-      "E1","E1_lainnya","E2","E3","dikecualikan"];
+      "R1","R1_lainnya","R2","R3","dikecualikan"];
     const rows=f.map(r=>{ const d=r.data||{};
-      return [r.id,r.respondent_code||r.session_token||"",r.status||"submitted",
+      const totX=K.totalSet(r,K.itemsVar("X")), totY=K.totalSet(r,K.itemsVar("Y"));
+      const meanX=K.meanVar(r,"X"), meanY=K.meanVar(r,"Y");
+      const r1 = d.R1 || d.E1 || [];
+      const r1_lain = d.R1_lainnya || d.E1_lainnya || "";
+      const r2 = d.R2 || d.E2 || "";
+      const r3 = d.R3 || d.E3 || "";
+      return [r.id,r.respondent_code||r.session_token||"",r.questionnaire_version||"v2",r.status||"submitted",
         r.is_synthetic?1:0, r.synthetic_batch_id||"",
         r.started_at||"",r.submitted_at||"",r.created_at,r.durasi_ms?Math.round(r.durasi_ms/1000):"",
         ...DEMOGRAFI.map(x=>K.kolom(r,x.id)),
         ...ITEMS.map(i=>K.nilaiItem(r,i)??""),
         ...ITEMS.map(i=>K.skorItem(r,i)??""),
-        ...K.struktur.variabel.map(v=>K.totalSet(r,K.itemsVar(v.id))??""),
-        ...K.struktur.variabel.map(v=>{const m=K.meanVar(r,v.id);return m==null?"":Number(m.toFixed(4));}),
-        ...K.struktur.variabel.map(v=>{const m=K.meanVar(r,v.id);return m==null?"":K.kategori(m);}),
+        totX??"", totY??"",
+        meanX==null?"":Number(meanX.toFixed(4)), meanY==null?"":Number(meanY.toFixed(4)),
+        meanX==null?"":K.kategori(meanX), meanY==null?"":K.kategori(meanY),
+        ...K.semuaIndikator().map(i=>{const t=K.totalSet(r,i.items);return t==null?"":t;}),
         ...K.semuaIndikator().map(i=>{const m=K.meanSet(r,i.items);return m==null?"":Number(m.toFixed(4));}),
-        (d.E1||[]).join(" | "),d.E1_lainnya||"",d.E2||"",d.E3||"",r.excluded?1:0]; });
+        r1.join(" | "), r1_lain, r2, r3, r.excluded?1:0]; });
     return {head,rows};
   },
   sheetItem(f){ return [["Item","Pernyataan","N","Mean","Median","Modus","SD","Varians","Min","Maks",
       ...SKALA.map(s=>s.k+"_n"),...SKALA.map(s=>s.k+"_persen")],
     ...ITEMS.map(it=>{ const a=this.skorItemArr(f,it),d=S.desc(a);
       const fr=SKALA.map(s=>a.filter(v=>v===s.v).length);
-      return [it,P_TEKS[it],d.n,+d.mean.toFixed(4),d.median,d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),d.min,d.max,
+      return [it,P_TEKS[it]||it,d.n,+d.mean.toFixed(4),d.median,d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),d.min,d.max,
         ...fr,...fr.map(v=>+(d.n?v/d.n*100:0).toFixed(2))]; })]; },
   v_export(body,f){
     body.innerHTML=`<div class="grid g2">
-      <div class="card"><h3>Berkas data</h3>
+      <div class="card"><h3>Berkas Data Penelitian</h3>
         <p>Unduhan mengikuti filter global yang sedang aktif (${f.length} responden).</p>
         <div class="pill-row" style="justify-content:flex-start">
-          <button class="btn sm" id="xlsx">Excel (.xlsx) multi-sheet</button>
-          <button class="btn sm ghost" id="csvLabel">CSV berlabel</button>
-          <button class="btn sm ghost" id="csvNum">CSV numerik (SPSS/R/Jamovi)</button>
+          <button class="btn sm" id="xlsx">Excel (.xlsx) 11-Sheet Lengkap</button>
+          <button class="btn sm ghost" id="csvLabel">CSV Berlabel</button>
+          <button class="btn sm ghost" id="csvNum">CSV Numerik (SPSS/Jamovi/R)</button>
+          <button class="btn sm ghost" id="csvReflektif">CSV Data Reflektif (R1–R3)</button>
           <button class="btn sm ghost" id="json">Cadangan JSON</button></div></div>
-      <div class="card"><h3>Dokumen laporan</h3>
-        <p>Tabel siap tempel untuk skripsi maupun laporan penelitian.</p>
+      <div class="card"><h3>Dokumen Laporan</h3>
+        <p>Tabel hasil analisis terstruktur untuk laporan penelitian dan skripsi.</p>
         <div class="pill-row" style="justify-content:flex-start">
           <button class="btn sm leaf" id="word">Word (.doc)</button>
-          <button class="btn sm ghost" id="pdf">PDF (cetak laporan)</button></div>
+          <button class="btn sm ghost" id="pdf">PDF (Cetak Laporan)</button></div>
         <p class="note" style="margin-top:12px">PDF dibuat melalui dialog cetak peramban — pilih tujuan “Simpan sebagai PDF”.</p></div></div>
-      <div class="card" style="margin-top:18px"><h3>Isi berkas Excel</h3>
-        <p style="margin:0">Raw Data · Respondent · Item Statistics · Indicator · Variable · Descriptive · Validity · Reliability · Korelasi · Regresi</p>
-        <p class="note" style="margin-top:10px">Setiap baris memuat kolom <code>is_synthetic</code> dan <code>synthetic_batch_id</code> sehingga data simulasi selalu dapat dibedakan dari data penelitian.</p></div>
+      <div class="card" style="margin-top:18px"><h3>Struktur Berkas Excel (11 Sheet Lengkap)</h3>
+        <p style="margin:0">1. Raw Data · 2. Respondent · 3. Item Statistics · 4. Indicator · 5. Variable · 6. Descriptive · 7. Validity · 8. Reliability · 9. Correlation · 10. Regression · 11. Reflective Responses</p>
+        <p class="note" style="margin-top:10px">Setiap baris memuat metadata identitas respon, 10 demografi (D1–D10), 19 Likert X, 10 Likert Y, serta 3 reflektif (R1–R3).</p></div>
       ${this.daftarBatch().length?`<div class="card" style="margin-top:18px;border:2px dashed var(--warn)">
         <h3>Export Synthetic Data <span class="synthtag">SIMULASI</span></h3>
         <p style="font-size:.9rem">Berkas terpisah berisi responden sintetis saja. Nama berkas mengikuti pola <code>synthetic-data-SIM-2026-001.csv</code>.</p>
@@ -3892,6 +4099,7 @@ Object.assign(Admin,{
     $("#xlsx").onclick=()=>this.exportXLSX(f);
     $("#csvLabel").onclick=()=>this.exportCSV(f,false);
     $("#csvNum").onclick=()=>this.exportCSV(f,true);
+    $("#csvReflektif").onclick=()=>this.exportCSVReflektif(f);
     $("#json").onclick=()=>saveFile("cadangan-kuesioner-"+new Date().toISOString().slice(0,10)+".json",
       new Blob([JSON.stringify({struktur:K.struktur,rows:this.rows},null,2)],{type:"application/json"}));
     $("#word").onclick=()=>this.exportWord(f);
@@ -3899,6 +4107,7 @@ Object.assign(Admin,{
   },
   exportCSV(f,numerik){
     const {head,rows}=this.matriksExport(f);
+    // Jika numerik: hilangkan kolom teks reflektif panjang agar bersih untuk SPSS/Jamovi
     const out=[head,...rows.map(r=>r.map((c,i)=>{
       if(!numerik) return c;
       const h=head[i];
@@ -3907,43 +4116,70 @@ Object.assign(Admin,{
       return c; }))];
     const csv=out.map(r=>r.map(c=>{ const s=String(c??"");
       return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(",")).join("\n");
-    saveFile((numerik?"data-numerik-":"data-berlabel-")+new Date().toISOString().slice(0,10)+".csv",
+    saveFile((numerik?"dataset-numerik-analisis-":"data-berlabel-")+new Date().toISOString().slice(0,10)+".csv",
       new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));
-    if(numerik) toast("Kode numerik: pilihan ke-n pada tiap pertanyaan tertutup = n, isian lainnya = 99","ok");
+    if(numerik) toast("Kode numerik: 1=STS, 2=TS, 3=N, 4=S, 5=SS. Demografi pilihan ke-n = n, isian lainnya = 99","ok");
+  },
+  exportCSVReflektif(f){
+    const head=["response_id","respondent_code","submitted_at","R1_Aspek_Terpilih","R1_Lainnya","R2_Jawaban","R3_Jawaban"];
+    const rows=f.map(r=>{
+      const d=r.data||{};
+      const r1=d.R1||d.E1||[];
+      return [r.id,r.respondent_code||"",r.submitted_at||r.created_at||"",r1.join(" | "),d.R1_lainnya||d.E1_lainnya||"",d.R2||d.E2||"",d.R3||d.E3||""];
+    });
+    const csv=[head,...rows].map(r=>r.map(c=>{ const s=String(c??"");
+      return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(",")).join("\n");
+    saveFile("data-reflektif-R1-R3-"+new Date().toISOString().slice(0,10)+".csv",
+      new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));
+    toast("CSV Data Reflektif berhasil diunduh","ok");
   },
   exportXLSX(f){
     if(typeof XLSX==="undefined") return toast("Pustaka Excel belum termuat. Periksa koneksi lalu coba lagi, atau gunakan CSV.","bad");
     const wb=XLSX.utils.book_new();
     const {head,rows}=this.matriksExport(f);
+    
+    // Sheet 1: Raw Data
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([head,...rows]),"Raw Data");
+    
+    // Sheet 2: Respondent
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-      ["ID","Kode Responden","Status","is_synthetic","synthetic_batch_id","Waktu","Durasi (detik)",...DEMOGRAFI.map(d=>d.q.slice(0,40)),"Mean X","Mean Y","Kategori X","Kategori Y","Dikecualikan"],
-      ...f.map(r=>{const mx=K.meanVar(r,"X"),my=K.meanVar(r,"Y");
-        return [r.id,r.respondent_code||r.session_token||"",r.status||"submitted",
+      ["Response ID","Kode Responden","Versi","Status","is_synthetic","synthetic_batch_id","Waktu Selesai","Durasi (detik)",...DEMOGRAFI.map(d=>d.q.slice(0,40)),"Total X","Total Y","Mean X","Mean Y","Kategori X","Kategori Y","Dikecualikan"],
+      ...f.map(r=>{const mx=K.meanVar(r,"X"),my=K.meanVar(r,"Y"), tx=K.totalSet(r,K.itemsVar("X")), ty=K.totalSet(r,K.itemsVar("Y"));
+        return [r.id,r.respondent_code||r.session_token||"",r.questionnaire_version||"v2",r.status||"submitted",
           r.is_synthetic?1:0, r.synthetic_batch_id||"",
-          r.created_at,r.durasi_ms?Math.round(r.durasi_ms/1000):"",
-          ...DEMOGRAFI.map(d=>K.kolom(r,d.id)),mx?+mx.toFixed(3):"",my?+my.toFixed(3):"",
+          r.submitted_at||r.created_at,r.durasi_ms?Math.round(r.durasi_ms/1000):"",
+          ...DEMOGRAFI.map(d=>K.kolom(r,d.id)),tx??"",ty??"",mx?+mx.toFixed(3):"",my?+my.toFixed(3):"",
           mx?K.kategori(mx):"",my?K.kategori(my):"",r.excluded?"ya":"tidak"];})]),"Respondent");
+    
+    // Sheet 3: Item Statistics
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(this.sheetItem(f)),"Item Statistics");
+    
+    // Sheet 4: Indicator
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
       ["Indikator","Nama","Variabel","Jml item","N","Mean","Persen","SD","Kategori"],
       ...K.semuaIndikator().map(i=>{const a=this.meanArr(f,i.items),m=S.mean(a);
         return [i.id,i.nama,i.vid,i.items.length,a.length,+m.toFixed(4),+K.persenSkor(m).toFixed(2),+S.sd(a).toFixed(4),K.kategori(m)];})]),"Indicator");
+    
+    // Sheet 5: Variable
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
       ["Variabel","Nama","Jml item","N","Total skor","Skor maksimal","Mean","Persen","SD","Kategori"],
       ...K.struktur.variabel.map(v=>{const items=K.itemsVar(v.id),a=this.meanArr(f,items),m=S.mean(a);
         const tot=S.sum(f.map(r=>K.totalSet(r,items)).filter(x=>x!=null));
         return [v.id,v.nama,items.length,a.length,tot,items.length*5*a.length,+m.toFixed(4),
           +K.persenSkor(m).toFixed(2),+S.sd(a).toFixed(4),K.kategori(m)];})]),"Variable");
+    
+    // Sheet 6: Descriptive
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
       ["Objek","N","Mean","Median","Modus","SD","Varians","Min","Maks","Range","Sum"],
       ...K.struktur.variabel.map(v=>{const a=f.map(r=>K.totalSet(r,K.itemsVar(v.id))).filter(x=>x!=null),d=S.desc(a);
-        return ["Total "+v.id,d.n,+d.mean.toFixed(4),d.median,d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),d.min,d.max,d.range,d.sum];}),
+        return ["Total "+v.id+" ("+v.nama+")",d.n,+d.mean.toFixed(4),d.median,d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),d.min,d.max,d.range,d.sum];}),
       ...K.semuaIndikator().map(i=>{const a=this.meanArr(f,i.items),d=S.desc(a);
-        return ["Mean "+i.id,d.n,+d.mean.toFixed(4),+d.median.toFixed(3),d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),
+        return ["Mean "+i.id+" ("+i.nama+")",d.n,+d.mean.toFixed(4),+d.median.toFixed(3),d.modus,+d.sd.toFixed(4),+d.varians.toFixed(4),
           +d.min.toFixed(2),+d.max.toFixed(2),+d.range.toFixed(2),+d.sum.toFixed(2)];})]),"Descriptive");
-    const valRows=[["Objek","Item","r hitung","r corrected","r tabel","p","Status"]];
-    [...K.struktur.variabel.map(v=>({id:v.id,items:K.itemsVar(v.id)})),...K.semuaIndikator()].forEach(b=>{
+    
+    // Sheet 7: Validity
+    const valRows=[["Variabel/Indikator","Item","r hitung (Item-Total)","r corrected","r tabel","p-value","Status"]];
+    [...K.struktur.variabel.map(v=>({id:v.id+" ("+v.nama+")",items:K.itemsVar(v.id)})),...K.semuaIndikator().map(i=>({id:i.id+" ("+i.nama+")",items:i.items}))].forEach(b=>{
       const rows2=this.lengkapUntuk(f,b.items); if(rows2.length<3) return;
       const rt=this.rTabel(rows2.length);
       const mat=rows2.map(r=>b.items.map(it=>K.skorItem(r,it)));
@@ -3951,31 +4187,47 @@ Object.assign(Admin,{
         const a=S.pearson(x,mat.map(r=>S.sum(r))), c=S.pearson(x,mat.map(r=>S.sum(r)-r[j]));
         valRows.push([b.id,it,+a.r.toFixed(4),+c.r.toFixed(4),+rt.toFixed(4),+a.p.toFixed(5),a.r>=rt?"VALID":"TIDAK VALID"]); }); });
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(valRows),"Validity");
+    
+    // Sheet 8: Reliability
     const relRows=[["Objek","Jml item","N","Cronbach Alpha","Status"]];
-    [{id:"Keseluruhan",items:ITEMS},...K.struktur.variabel.map(v=>({id:v.id,items:K.itemsVar(v.id)})),
-     ...K.semuaIndikator()].forEach(b=>{ const rows2=this.lengkapUntuk(f,b.items);
+    [{id:"Keseluruhan (29 Item Likert)",items:ITEMS},...K.struktur.variabel.map(v=>({id:v.id+" — "+v.nama,items:K.itemsVar(v.id)})),
+     ...K.semuaIndikator().map(i=>({id:i.id+" — "+i.nama,items:i.items}))].forEach(b=>{ const rows2=this.lengkapUntuk(f,b.items);
       if(rows2.length<2) return; const c=S.cronbach(rows2.map(r=>b.items.map(it=>K.skorItem(r,it))));
       relRows.push([b.id,c.k,c.n,+c.alpha.toFixed(4),c.alpha>=K.struktur.ambangAlpha?"RELIABEL":"BELUM RELIABEL"]); });
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(relRows),"Reliability");
+    
+    // Sheet 9: Correlation
     const objek=[...K.struktur.variabel.map(v=>({id:v.id,items:K.itemsVar(v.id)})),...K.semuaIndikator()];
     const rws=f.filter(r=>objek.every(o=>K.meanSet(r,o.items)!=null));
     const vec={}; objek.forEach(o=>vec[o.id]=rws.map(r=>K.meanSet(r,o.items)));
     const korRows=[["",...objek.map(o=>o.id)]];
     objek.forEach(a=>korRows.push([a.id,...objek.map(b=>+S.pearson(vec[a.id],vec[b.id]).r.toFixed(4))]));
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(korRows),"Korelasi");
-    const regRows=[["Model","Keterangan","Nilai"]];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(korRows),"Correlation");
+    
+    // Sheet 10: Regression
+    const regRows=[["Model","Parameter","Nilai"]];
     try{ const y=rws.map(r=>K.meanVar(r,"Y"));
       const m1=S.olsMulti(rws.map(r=>[K.meanVar(r,"X")]),y);
       const indX=K.struktur.variabel.find(v=>v.id==="X").indikator;
       const m2=S.olsMulti(rws.map(r=>indX.map(i=>K.meanSet(r,i.items))),y);
-      [["Sederhana",m1,["Konstanta","X"]],["Berganda",m2,["Konstanta",...indX.map(i=>i.id)]]].forEach(([nm,m,lb])=>{
+      [["Sederhana (X_Total/Mean → Y)",m1,["Konstanta (Intercept)","X (Slope)"]],["Berganda (Indikator X → Y)",m2,["Konstanta",...indX.map(i=>i.id)]]].forEach(([nm,m,lb])=>{
         regRows.push([nm,"R",+m.R.toFixed(4)],[nm,"R Square",+m.R2.toFixed(4)],[nm,"Adjusted R Square",+m.adj.toFixed(4)],
-          [nm,"F",+m.F.toFixed(4)],[nm,"Sig. F",+m.Fsig.toFixed(5)],[nm,"N",m.n]);
+          [nm,"F",+m.F.toFixed(4)],[nm,"Sig. F (p-value)",+m.Fsig.toFixed(5)],[nm,"N",m.n]);
         lb.forEach((l,j)=>regRows.push([nm,"B "+l,+m.beta[j].toFixed(5)],[nm,"Sig. "+l,+m.sig[j].toFixed(5)])); });
     }catch(e){ regRows.push(["—","Data belum cukup untuk regresi",""]); }
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(regRows),"Regresi");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(regRows),"Regression");
+    
+    // Sheet 11: Reflective Responses
+    const refRows=[["Response ID","Kode Responden","Waktu Selesai","R1 — Aspek Terpilih","R1 — Aspek Lainnya","R2 — Solusi Koperasi Adil","R3 — Pendapat Perluasan Akses"]];
+    f.forEach(r=>{
+      const d=r.data||{};
+      const r1=d.R1||d.E1||[];
+      refRows.push([r.id,r.respondent_code||"",r.submitted_at||r.created_at||"",r1.join(" | "),d.R1_lainnya||d.E1_lainnya||"",d.R2||d.E2||"",d.R3||d.E3||""]);
+    });
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(refRows),"Reflective Responses");
+
     const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
-    saveFile("analisis-kuesioner-"+new Date().toISOString().slice(0,10)+".xlsx",
+    saveFile("analisis-kuesioner-seruyan-"+new Date().toISOString().slice(0,10)+".xlsx",
       new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
   },
   exportWord(f){
@@ -3984,35 +4236,48 @@ Object.assign(Admin,{
       ${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table>`;
     const ind=K.semuaIndikator();
     const html=`<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body style="font-family:Calibri">
-      <h2>Hasil Analisis Kuesioner Penelitian</h2>
-      <p>${esc(JUDUL)}</p><p>${esc(CONFIG.INSTITUSI)} — ${f.length} responden — diunduh ${tglID(new Date().toISOString())}</p>
-      <h3>Tabel 1. Karakteristik Responden</h3>
+      <h2>Laporan Hasil Analisis Kuesioner Penelitian</h2>
+      <p><strong>Judul:</strong> ${esc(JUDUL)}</p>
+      <p><strong>Institusi:</strong> ${esc(CONFIG.INSTITUSI)} — ${f.length} responden — diunduh ${tglID(new Date().toISOString())}</p>
+      <p><strong>Variabel Penelitian:</strong> Variabel X: Keadilan Kebijakan (4 Indikator: Keadilan Prosedural, Keadilan Kesempatan, Keadilan Distribusi Manfaat, Keadilan Konsekuensi dan Risiko) | Variabel Y: Sikap Mahasiswa (3 Indikator: Penilaian, Penerimaan, Dukungan).</p>
+      
+      <h3>Tabel 1. Karakteristik Demografi Responden (D1–D10)</h3>
       ${t(["Karakteristik","Kategori","Frekuensi","Persentase"],
         DEMOGRAFI.filter(d=>d.t==="radio").flatMap(d=>{ const c={};
           f.forEach(r=>{const v=K.kolom(r,d.id);c[v]=(c[v]||0)+1;});
-          return Object.entries(c).map(([k,v],i)=>[i===0?esc(d.q):"",esc(k),v,nf(v/f.length*100,1)+"%"]); }))}
-      <h3>Tabel 2. Statistik Deskriptif per Item</h3>
-      ${t(["Item","N","Mean","Median","Modus","SD","Kategori"],
-        ITEMS.map(it=>{const a=this.skorItemArr(f,it),d=S.desc(a);
-          return [it,d.n,nf(d.mean),nf(d.median),nf(d.modus,0),nf(d.sd,3),esc(K.kategori(d.mean))];}))}
-      <h3>Tabel 3. Analisis Indikator</h3>
-      ${t(["Indikator","Jml Item","N","Mean","Persentase","SD","Kategori"],
-        ind.map(i=>{const a=this.meanArr(f,i.items),m=S.mean(a);
-          return [i.id+" — "+esc(i.nama),i.items.length,a.length,nf(m),nf(K.persenSkor(m),1)+"%",nf(S.sd(a),3),esc(K.kategori(m))];}))}
-      <h3>Tabel 4. Analisis Variabel</h3>
-      ${t(["Variabel","Jml Item","N","Mean","Persentase","SD","Kategori"],
-        K.struktur.variabel.map(v=>{const a=this.meanArr(f,K.itemsVar(v.id)),m=S.mean(a);
-          return [v.id+" — "+esc(v.nama),K.itemsVar(v.id).length,a.length,nf(m),nf(K.persenSkor(m),1)+"%",nf(S.sd(a),3),esc(K.kategori(m))];}))}
-      <h3>Tabel 5. Uji Reliabilitas</h3>
-      ${t(["Objek","Jml Item","N","Cronbach's Alpha","Status"],
-        [{id:"Keseluruhan",items:ITEMS},...K.struktur.variabel.map(v=>({id:v.id,items:K.itemsVar(v.id)}))].map(b=>{
-          const rows2=this.lengkapUntuk(f,b.items);
-          if(rows2.length<2) return [b.id,b.items.length,rows2.length,"–","data belum cukup"];
-          const c=S.cronbach(rows2.map(r=>b.items.map(it=>K.skorItem(r,it))));
-          return [b.id,c.k,c.n,nf(c.alpha,3),c.alpha>=K.struktur.ambangAlpha?"Reliabel":"Belum reliabel"];}))}
-      </body></html>`;
-    saveFile("tabel-penelitian-"+new Date().toISOString().slice(0,10)+".doc",
-      new Blob([html],{type:"application/msword"}));
+          const tot=f.length||1;
+          return Object.entries(c).map(([k,v],i)=>[i===0?esc(d.q):"",esc(k),v,pf(v/tot*100)]); }))}
+
+      <h3>Tabel 2. Statistik Deskriptif Variabel & Indikator</h3>
+      ${t(["Objek","N","Mean","SD","Kategori"],
+        [...K.struktur.variabel.map(v=>{ const a=this.meanArr(f,K.itemsVar(v.id)),m=S.mean(a);
+            return [esc(v.id+" — "+v.nama),a.length,nf(m,3),nf(S.sd(a),3),K.kategori(m)]; }),
+         ...ind.map(i=>{ const a=this.meanArr(f,i.items),m=S.mean(a);
+            return [esc(i.id+" — "+i.nama),a.length,nf(m,3),nf(S.sd(a),3),K.kategori(m)]; })])}
+
+      <h3>Tabel 3. Uji Reliabilitas (Cronbach's Alpha)</h3>
+      ${t(["Objek","Jumlah Item","N","Cronbach Alpha","Status"],
+        [{id:"Keseluruhan (29 Item Likert)",items:ITEMS},
+         ...K.struktur.variabel.map(v=>({id:v.id+" — "+v.nama,items:K.itemsVar(v.id)})),
+         ...ind.map(i=>({id:i.id+" — "+i.nama,items:i.items}))].map(b=>{
+           const rws=this.lengkapUntuk(f,b.items);
+           const c=rws.length>1?S.cronbach(rws.map(r=>b.items.map(it=>K.skorItem(r,it)))):{alpha:NaN,k:b.items.length,n:rws.length};
+           return [esc(b.id),c.k,c.n,nf(c.alpha,3),c.alpha>=K.struktur.ambangAlpha?"RELIABEL":"BELUM RELIABEL"];
+         }))}
+
+      <h3>Tabel 4. Ringkasan Regresi Linear (X → Y)</h3>
+      ${(()=>{ try{
+        const rws=f.filter(r=>K.meanVar(r,"X")!=null&&K.meanVar(r,"Y")!=null);
+        const y=rws.map(r=>K.meanVar(r,"Y")), x=rws.map(r=>K.meanVar(r,"X"));
+        const m=S.olsMulti(x.map(v=>[v]),y);
+        return t(["Model","Parameter","Koefisien (B)","Std. Error","t hitung","p-value","R","R Square"],
+          [["Regresi Sederhana (X → Y)","Konstanta (a)",nf(m.beta[0],4),nf(m.se[0],4),nf(m.t[0],3),nf(m.sig[0],4),nf(m.R,3),nf(m.R2,3)],
+           ["","Keadilan Kebijakan (b)",nf(m.beta[1],4),nf(m.se[1],4),nf(m.t[1],3),nf(m.sig[1],4),"",""]]);
+      }catch(e){ return "<p>Data belum cukup untuk regresi.</p>"; } })()}
+    </body></html>`;
+    saveFile("laporan-analisis-kuesioner-seruyan-"+new Date().toISOString().slice(0,10)+".doc",
+      new Blob(["\ufeff"+html],{type:"application/msword;charset=utf-8"}));
+    toast("Dokumen Word berhasil diunduh","ok");
   },
 
   /* ---------- Laporan otomatis ---------- */
@@ -4027,7 +4292,7 @@ Object.assign(Admin,{
         this.tabel(["Kategori",{t:"Frekuensi",num:1},{t:"Persentase",num:1}],
           Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),{v:String(v),cls:"num"},{v:pf(v/f.length*100),cls:"num"}])); }).join("");
     let relIsi="";
-    [{id:"Keseluruhan (P1–P29)",items:ITEMS},...K.struktur.variabel.map(v=>({id:v.id+" — "+v.nama,items:K.itemsVar(v.id)}))].forEach(b=>{
+    [{id:"Keseluruhan (29 Item Likert)",items:ITEMS},...K.struktur.variabel.map(v=>({id:v.id+" — "+v.nama,items:K.itemsVar(v.id)}))].forEach(b=>{
       const rows2=this.lengkapUntuk(f,b.items);
       relIsi+=`<tr><td>${esc(b.id)}</td><td class="num">${b.items.length}</td><td class="num">${rows2.length}</td><td class="num">${
         rows2.length<2?"–":nf(S.cronbach(rows2.map(r=>b.items.map(it=>K.skorItem(r,it)))).alpha,3)}</td></tr>`; });
@@ -4238,7 +4503,7 @@ const Sintetis = {
     ITEMS.forEach(it=>{ kol[it] = o.acak ? this.kolomItem(n,dist,rnd,true) : dasar.slice(); });
 
     const opsiDemo={}; DEMOGRAFI.forEach(d=>{ if(d.t==="radio") opsiDemo[d.id]=this.opsiUntuk(peta,d); });
-    const qE1=peta.E1;
+    const qE1=peta.R1||peta.E1;
     const opsiE1=(qE1 && Array.isArray(qE1.options) && qE1.options.length ? qE1.options : E1_OPSI)
       .filter(x=>typeof x==="string" && x!=="Lainnya");
 
@@ -4257,9 +4522,9 @@ const Sintetis = {
       });
       ITEMS.forEach(it=>{ data[it]=kol[it][i]; });
       const jml=1+Math.floor(rnd()*Math.min(3,opsiE1.length));
-      data.E1=this.kocok(opsiE1.slice(),rnd).slice(0,jml);
-      data.E2="[DATA SIMULASI] Jawaban sintetis untuk uji coba sistem, bukan pendapat responden nyata.";
-      data.E3="[DATA SIMULASI] Jawaban sintetis untuk uji coba sistem, bukan pendapat responden nyata.";
+      data.R1=this.kocok(opsiE1.slice(),rnd).slice(0,jml); data.E1=data.R1;
+      data.R2="[DATA SIMULASI] Jawaban sintetis uji coba sistem terkait kemitraan kebun sawit Seruyan."; data.E2=data.R2;
+      data.R3="[DATA SIMULASI] Pendapat simulasi atas perluasan akses koperasi sawit Kabupaten Seruyan."; data.E3=data.R3;
 
       const dur=420000+Math.floor(rnd()*720000);
       const selesai=new Date(sekarang - Math.floor(rnd()*14*86400000));
@@ -4416,9 +4681,9 @@ Object.assign(Admin,{
           urut.map(s=>[ (s.v===o.maj?`<strong>${s.v} \u2014 ${esc(s.l)}</strong> <span class="synthtag">MAYORITAS</span>`:`${s.v} \u2014 ${esc(s.l)}`),
             this.num(o.n?kuota[s.v]/o.n*100:0,1), {v:String(kuota[s.v]),cls:"num"},
             `<div class="distbar ${s.v===o.maj?"maj":""}"><i style="width:${(kuota[s.v]/maks*100).toFixed(1)}%"></i></div>`]))}
-        <p class="note" style="margin-top:8px">Persentase di atas berlaku untuk setiap pernyataan P1\u2013P29 dan dijamin tepat melalui kuota (pembulatan sisa terbesar).</p>
+        <p class="note" style="margin-top:8px">Persentase di atas berlaku untuk setiap pernyataan X1–X19 dan Y1–Y10 dan dijamin tepat melalui kuota (pembulatan sisa terbesar).</p>
         <h4 style="margin-top:16px">Contoh synthetic respondent</h4>
-        ${this.tabel(["Kode","Jawaban P1\u2013P8","Durasi","Waktu"],contoh)}
+        ${this.tabel(["Kode","Jawaban X1–X8","Durasi","Waktu"],contoh)}
         <div class="pill-row" style="justify-content:flex-start;margin-top:14px">
           <button class="btn sm" id="syGen2" ${DB.siap&&KOLOM_SINTETIS?"":"disabled"}>Generate ${o.n} Respondents</button>
           <button class="btn sm ghost" id="syBatal">Tutup preview</button></div>
@@ -4917,15 +5182,17 @@ function sqlJsonb(v){ return v==null ? "null" : sqlTeks(JSON.stringify(v))+"::js
 function bangunSeedSQL(){
   const L=[];
   L.push("-- =========================================================");
-  L.push("-- SEED — SECTION & PERTANYAAN KUESIONER");
-  L.push("-- Jalankan SETELAH skema utama. Aman diulang (ON CONFLICT DO UPDATE).");
-  L.push("-- ID pertanyaan dipertahankan persis seperti di aplikasi.");
+  L.push("-- SEED — SECTION & PERTANYAAN KUESIONER TERBARU (v2)");
+  L.push("-- Judul: PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN");
+  L.push("-- Non-destruktif: Aman dijalankan berulang (ON CONFLICT DO UPDATE).");
   L.push("-- =========================================================");
   L.push("");
   L.push("-- 1. Section");
-  const sec=[["IDENT","Identitas Responden","Data demografi responden (tanpa nama, NIM, telepon, atau surel).",1]]
-    .concat(BAGIAN.map((b,i)=>[b.id,b.judul,b.intro,i+2]))
-    .concat([["ESSAY","Tambahan Reflektif","Pertanyaan terbuka pada akhir kuesioner.",BAGIAN.length+2]]);
+  const sec=[
+    ["IDENT","Identitas Responden","Data demografi responden (tanpa data sensitif/pribadi).",1],
+    ...BAGIAN.map((b,i)=>[b.id,b.judul,b.intro,i+2]),
+    ["REFLECTIVE","Pertanyaan Reflektif","Pertanyaan reflektif dan kualitatif pada akhir kuesioner.",BAGIAN.length+2]
+  ];
   sec.forEach(function(s){
     L.push("insert into public.survey_sections (id,title,description,sort_order,is_active) values ("
       +sqlTeks(s[0])+","+sqlTeks(s[1])+","+sqlTeks(s[2])+","+s[3]+",true)"
@@ -4946,7 +5213,7 @@ function bangunSeedSQL(){
       +" question_type=excluded.question_type, options=excluded.options, sort_order=excluded.sort_order, updated_at=now();");
   });
   L.push("");
-  L.push("-- 3. Pernyataan skala Likert 1-5 (P1..P29)");
+  L.push("-- 3. Pernyataan skala Likert 1-5 (X1..X19 & Y1..Y10)");
   const opsiSkala = SKALA.map(function(s){ return {value:s.v,code:s.k,label:s.l}; });
   BAGIAN.forEach(function(b){
     b.items.forEach(function(it,j){
@@ -4961,17 +5228,17 @@ function bangunSeedSQL(){
     });
   });
   L.push("");
-  L.push("-- 4. Pertanyaan terbuka (E1..E3)");
-  const esai=[
-    ["E1",1,"Aspek yang paling penting diperhatikan dalam kebijakan perluasan akses koperasi (boleh lebih dari satu).","checkbox",true,E1_OPSI.concat(["Lainnya"])],
-    ["E2",2,"Pandangan tambahan mengenai kebijakan perluasan akses koperasi.","textarea",false,null],
-    ["E3",3,"Alasan mengapa isu ini penting atau tidak penting menurut Anda.","textarea",false,null]
+  L.push("-- 4. Pertanyaan reflektif (R1..R3)");
+  const ref=[
+    ["R1",1,R1_Q,"checkbox",true,R1_OPSI.concat(["Lainnya"])],
+    ["R2",2,R2_Q,"textarea",false,null],
+    ["R3",3,R3_Q,"textarea",false,null]
   ];
-  esai.forEach(function(e){
+  ref.forEach(function(e){
     urut++;
     L.push("insert into public.survey_questions (id,section_id,question_number,question_text,question_type,"
       +"required,options,scale_min,scale_max,is_active,sort_order) values ("
-      +sqlTeks(e[0])+",'ESSAY',"+e[1]+","+sqlTeks(e[2])+","+sqlTeks(e[3])+","+(e[4]?"true":"false")+","
+      +sqlTeks(e[0])+",'REFLECTIVE',"+e[1]+","+sqlTeks(e[2])+","+sqlTeks(e[3])+","+(e[4]?"true":"false")+","
       +sqlJsonb(e[5])+",null,null,true,"+urut+")"
       +" on conflict (id) do update set section_id=excluded.section_id, question_text=excluded.question_text,"
       +" question_type=excluded.question_type, required=excluded.required, options=excluded.options,"
@@ -4981,6 +5248,7 @@ function bangunSeedSQL(){
   L.push("-- Selesai. Total pertanyaan yang di-seed: "+urut+".");
   return L.join("\n");
 }
+
 
 Object.assign(Admin,{
   v_pengaturan(body){
