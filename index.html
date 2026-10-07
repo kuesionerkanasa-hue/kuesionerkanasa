@@ -995,6 +995,7 @@ const ITEMS = Object.keys(P_TEKS); // X1..X19, Y1..Y10 (29 item Likert)
 const BAGIAN = [
   {
     id: "C1",
+    section_key: "KEADILAN_PROSEDURAL",
     variable_id: "X",
     indicator_id: "X_Prosedural",
     judul: "Keadilan Prosedural",
@@ -1005,6 +1006,7 @@ const BAGIAN = [
   },
   {
     id: "C2",
+    section_key: "KEADILAN_KESEMPATAN",
     variable_id: "X",
     indicator_id: "X_Kesempatan",
     judul: "Keadilan Kesempatan",
@@ -1015,6 +1017,7 @@ const BAGIAN = [
   },
   {
     id: "C3",
+    section_key: "KEADILAN_DISTRIBUSI",
     variable_id: "X",
     indicator_id: "X_Distribusi",
     judul: "Keadilan Distribusi Manfaat",
@@ -1025,6 +1028,7 @@ const BAGIAN = [
   },
   {
     id: "C4",
+    section_key: "KEADILAN_KONSEKUENSI_RISIKO",
     variable_id: "X",
     indicator_id: "X_Konsekuensi_Risiko",
     judul: "Keadilan Konsekuensi dan Risiko",
@@ -1035,6 +1039,7 @@ const BAGIAN = [
   },
   {
     id: "D1",
+    section_key: "PENILAIAN",
     variable_id: "Y",
     indicator_id: "Y_Penilaian",
     judul: "Penilaian terhadap Kebijakan",
@@ -1045,6 +1050,7 @@ const BAGIAN = [
   },
   {
     id: "D2",
+    section_key: "PENERIMAAN",
     variable_id: "Y",
     indicator_id: "Y_Penerimaan",
     judul: "Penerimaan terhadap Kebijakan",
@@ -1055,6 +1061,7 @@ const BAGIAN = [
   },
   {
     id: "D3",
+    section_key: "DUKUNGAN",
     variable_id: "Y",
     indicator_id: "Y_Dukungan",
     judul: "Dukungan terhadap Pelaksanaan dan Pengawasan",
@@ -1334,9 +1341,9 @@ window.addEventListener("online", ()=>{ Antrian.alirkan(); });
 const PETA = {
   section(qid){
     if(/^D\d+$/.test(qid)) return "IDENT";
-    if(/^(R|E)\d+$/.test(qid)) return "REFLECTIVE";
+    if(/^(R|E)\d+$/.test(qid)) return "REFLEKTIF";
     const b = BAGIAN.find(b=>b.items.indexOf(qid)>=0);
-    if(b) return b.id;
+    if(b) return b.section_key || b.id;
     // Fallback kompatibilitas data lama
     if(/^P[1-4]$/.test(qid)) return "C1";
     if(/^P[5-9]$/.test(qid)) return "C2";
@@ -5182,53 +5189,74 @@ function sqlJsonb(v){ return v==null ? "null" : sqlTeks(JSON.stringify(v))+"::js
 function bangunSeedSQL(){
   const L=[];
   L.push("-- =========================================================");
-  L.push("-- SEED — SECTION & PERTANYAAN KUESIONER TERBARU (v2)");
+  L.push("-- SUPABASE DATABASE MIGRATION — INSTRUMEN PENELITIAN v2");
   L.push("-- Judul: PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN");
-  L.push("-- Non-destruktif: Aman dijalankan berulang (ON CONFLICT DO UPDATE).");
+  L.push("-- Non-destruktif: Aman dijalankan berulang kali.");
   L.push("-- =========================================================");
   L.push("");
-  L.push("-- 1. Section");
-  const sec=[
-    ["IDENT","Identitas Responden","Data demografi responden (tanpa data sensitif/pribadi).",1],
-    ...BAGIAN.map((b,i)=>[b.id,b.judul,b.intro,i+2]),
-    ["REFLECTIVE","Pertanyaan Reflektif","Pertanyaan reflektif dan kualitatif pada akhir kuesioner.",BAGIAN.length+2]
+  L.push("-- 1. Skema Kolom & Constraint");
+  L.push("alter table if exists public.survey_responses");
+  L.push("  add column if not exists questionnaire_version text default 'v2',");
+  L.push("  add column if not exists instrument_version    text default 'v2';");
+  L.push("update public.survey_responses set questionnaire_version = 'v1', instrument_version = 'v1' where questionnaire_version is null;");
+  L.push("alter table if exists public.survey_questions");
+  L.push("  add column if not exists variable text,");
+  L.push("  add column if not exists variable_group text,");
+  L.push("  add column if not exists indicator text,");
+  L.push("  add column if not exists scoreable boolean not null default false,");
+  L.push("  add column if not exists instrument_version text not null default 'v2';");
+  L.push("alter table if exists public.survey_sections add column if not exists variable text, add column if not exists code text;");
+  L.push("alter table if exists public.survey_answers drop constraint if exists survey_answers_numeric_chk;");
+  L.push("alter table if exists public.survey_answers add constraint survey_answers_numeric_chk check (answer_numeric is null or (answer_numeric >= 1 and answer_numeric <= 5));");
+  L.push("");
+  L.push("-- 2. Section");
+  const sec = [
+    ["IDENT","Identitas Responden","Data demografi responden (tanpa data sensitif/pribadi).",1,null,"IDENT"],
+    ...BAGIAN.map((b,i)=>[b.section_key||b.id, b.judul, b.intro, i+2, b.variable_id, b.id]),
+    ["REFLEKTIF","Pertanyaan Reflektif","Pertanyaan reflektif dan kualitatif pada akhir kuesioner.",BAGIAN.length+2,null,"REFLEKTIF"],
+    // Alias compatibility sections
+    ...BAGIAN.map((b,i)=>[b.id, b.judul, "Alias "+b.id+": "+b.judul, i+10, b.variable_id, b.id]),
+    ["REFLECTIVE","Pertanyaan Reflektif","Alias REFLECTIVE",BAGIAN.length+10,null,"REFLECTIVE"]
   ];
   sec.forEach(function(s){
-    L.push("insert into public.survey_sections (id,title,description,sort_order,is_active) values ("
-      +sqlTeks(s[0])+","+sqlTeks(s[1])+","+sqlTeks(s[2])+","+s[3]+",true)"
+    L.push("insert into public.survey_sections (id,title,description,sort_order,is_active,variable,code) values ("
+      +sqlTeks(s[0])+","+sqlTeks(s[1])+","+sqlTeks(s[2])+","+s[3]+",true,"+sqlTeks(s[4])+","+sqlTeks(s[5])+")"
       +" on conflict (id) do update set title=excluded.title, description=excluded.description,"
-      +" sort_order=excluded.sort_order, updated_at=now();");
+      +" sort_order=excluded.sort_order, variable=excluded.variable, code=excluded.code, updated_at=now();");
   });
   L.push("");
-  L.push("-- 2. Pertanyaan demografi (D1..D10)");
+  L.push("-- 3. Pertanyaan demografi (D1..D10)");
   let urut=0;
   DEMOGRAFI.forEach(function(d,i){
     urut++;
     const opsi = d.t==="radio" ? (d.other ? d.o.concat(["Lainnya"]) : d.o) : null;
     L.push("insert into public.survey_questions (id,section_id,question_number,question_text,question_type,"
-      +"required,options,scale_min,scale_max,is_active,sort_order) values ("
+      +"required,options,scale_min,scale_max,is_active,sort_order,variable,variable_group,indicator,scoreable,instrument_version) values ("
       +sqlTeks(d.id)+",'IDENT',"+(i+1)+","+sqlTeks(d.q)+","+sqlTeks(d.t==="radio"?"radio":"text")+",true,"
-      +sqlJsonb(opsi)+",null,null,true,"+urut+")"
-      +" on conflict (id) do update set section_id=excluded.section_id, question_text=excluded.question_text,"
-      +" question_type=excluded.question_type, options=excluded.options, sort_order=excluded.sort_order, updated_at=now();");
+      +sqlJsonb(opsi)+",null,null,true,"+urut+",null,null,null,false,'v2')"
+      +" on conflict (id) do update set section_id=excluded.section_id, question_number=excluded.question_number,"
+      +" question_text=excluded.question_text, question_type=excluded.question_type, options=excluded.options,"
+      +" sort_order=excluded.sort_order, scoreable=false, instrument_version='v2', updated_at=now();");
   });
   L.push("");
-  L.push("-- 3. Pernyataan skala Likert 1-5 (X1..X19 & Y1..Y10)");
+  L.push("-- 4. Pernyataan skala Likert 1-5 (X1..X19 & Y1..Y10)");
   const opsiSkala = SKALA.map(function(s){ return {value:s.v,code:s.k,label:s.l}; });
   BAGIAN.forEach(function(b){
     b.items.forEach(function(it,j){
       urut++;
+      const vGroup = b.variable_id === "X" ? "Variabel X — Keadilan Kebijakan" : "Variabel Y — Sikap Mahasiswa";
       L.push("insert into public.survey_questions (id,section_id,question_number,question_text,question_type,"
-        +"required,options,scale_min,scale_max,is_active,sort_order) values ("
-        +sqlTeks(it)+","+sqlTeks(b.id)+","+(j+1)+","+sqlTeks(P_TEKS[it])+",'likert',true,"
-        +sqlJsonb(opsiSkala)+",1,5,true,"+urut+")"
-        +" on conflict (id) do update set section_id=excluded.section_id, question_text=excluded.question_text,"
-        +" question_type=excluded.question_type, options=excluded.options, scale_min=1, scale_max=5,"
-        +" sort_order=excluded.sort_order, updated_at=now();");
+        +"required,options,scale_min,scale_max,is_active,sort_order,variable,variable_group,indicator,scoreable,instrument_version) values ("
+        +sqlTeks(it)+","+sqlTeks(b.section_key||b.id)+","+(j+1)+","+sqlTeks(P_TEKS[it])+",'likert',true,"
+        +sqlJsonb(opsiSkala)+",1,5,true,"+urut+","+sqlTeks(b.variable_id)+","+sqlTeks(vGroup)+","+sqlTeks(b.judul)+",true,'v2')"
+        +" on conflict (id) do update set section_id=excluded.section_id, question_number=excluded.question_number,"
+        +" question_text=excluded.question_text, question_type=excluded.question_type, options=excluded.options,"
+        +" scale_min=1, scale_max=5, sort_order=excluded.sort_order, variable=excluded.variable,"
+        +" variable_group=excluded.variable_group, indicator=excluded.indicator, scoreable=true, instrument_version='v2', updated_at=now();");
     });
   });
   L.push("");
-  L.push("-- 4. Pertanyaan reflektif (R1..R3)");
+  L.push("-- 5. Pertanyaan reflektif (R1..R3)");
   const ref=[
     ["R1",1,R1_Q,"checkbox",true,R1_OPSI.concat(["Lainnya"])],
     ["R2",2,R2_Q,"textarea",false,null],
@@ -5237,18 +5265,20 @@ function bangunSeedSQL(){
   ref.forEach(function(e){
     urut++;
     L.push("insert into public.survey_questions (id,section_id,question_number,question_text,question_type,"
-      +"required,options,scale_min,scale_max,is_active,sort_order) values ("
-      +sqlTeks(e[0])+",'REFLECTIVE',"+e[1]+","+sqlTeks(e[2])+","+sqlTeks(e[3])+","+(e[4]?"true":"false")+","
-      +sqlJsonb(e[5])+",null,null,true,"+urut+")"
-      +" on conflict (id) do update set section_id=excluded.section_id, question_text=excluded.question_text,"
-      +" question_type=excluded.question_type, required=excluded.required, options=excluded.options,"
-      +" sort_order=excluded.sort_order, updated_at=now();");
+      +"required,options,scale_min,scale_max,is_active,sort_order,variable,variable_group,indicator,scoreable,instrument_version) values ("
+      +sqlTeks(e[0])+",'REFLEKTIF',"+e[1]+","+sqlTeks(e[2])+","+sqlTeks(e[3])+","+(e[4]?"true":"false")+","
+      +sqlJsonb(e[5])+",null,null,true,"+urut+",null,null,null,false,'v2')"
+      +" on conflict (id) do update set section_id=excluded.section_id, question_number=excluded.question_number,"
+      +" question_text=excluded.question_text, question_type=excluded.question_type, required=excluded.required,"
+      +" options=excluded.options, sort_order=excluded.sort_order, scoreable=false, instrument_version='v2', updated_at=now();");
   });
+  L.push("");
+  L.push("-- 6. Metadata Penelitian di app_settings");
+  L.push("insert into public.app_settings (setting_key, setting_value) values ('struktur', "+sqlJsonb(K.struktur)+") on conflict (setting_key) do update set setting_value=excluded.setting_value, updated_at=now();");
   L.push("");
   L.push("-- Selesai. Total pertanyaan yang di-seed: "+urut+".");
   return L.join("\n");
 }
-
 
 Object.assign(Admin,{
   v_pengaturan(body){
