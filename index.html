@@ -2029,7 +2029,7 @@ const R1_Q = "Menurut Anda, aspek apa yang paling penting diperhatikan agar perl
 const R2_Q = "Berdasarkan kondisi kemitraan dan kebun plasma di Kabupaten Seruyan yang telah dijelaskan, menurut Anda apa yang perlu dilakukan agar koperasi masyarakat memiliki kesempatan yang lebih adil dalam memperoleh akses pada kegiatan perkebunan sawit?";
 const R3_Q = "Setelah membaca gambaran kasus dalam kuesioner ini, bagaimana pendapat Anda mengenai perluasan akses koperasi perkebunan sawit di Kabupaten Seruyan?";
 
-/* SINGLE SOURCE OF TRUTH: QUESTION_SCHEMA */
+/* SINGLE SOURCE OF TRUTH: CURRENT_QUESTIONNAIRE_SCHEMA */
 const QUESTION_SCHEMA = [
   ...DEMOGRAFI.map(d=>({ id:d.id, section:"IDENT", type:d.t, label:d.q, options:d.o, other:!!d.other, required:true })),
   ...ITEMS.map(it=>{
@@ -2040,6 +2040,21 @@ const QUESTION_SCHEMA = [
   { id:"R2", section:"REFLECTIVE", type:"textarea", label:R2_Q, required:false },
   { id:"R3", section:"REFLECTIVE", type:"textarea", label:R3_Q, required:false }
 ];
+
+const CURRENT_QUESTIONNAIRE_SCHEMA = {
+  version: "v2",
+  title: "PENGARUH KEADILAN KEBIJAKAN TERHADAP SIKAP MAHASISWA ATAS PERLUASAN AKSES KOPERASI PERKEBUNAN SAWIT DI KABUPATEN SERUYAN",
+  counts: {
+    total: 42,
+    demographics: 10,
+    likert_total: 29,
+    variable_x: 19,
+    variable_y: 10,
+    reflective: 3
+  },
+  sections: BAGIAN,
+  questions: QUESTION_SCHEMA
+};
 
 /* Struktur variabel & indikator statistik default */
 const STRUKTUR_DEFAULT = {
@@ -2433,14 +2448,27 @@ const Respon = {
     try{ const { data } = await DB.client.auth.getSession();
          if(data && data.session && data.session.user) pemilik = data.session.user.id; }catch(e){}
     const calon = uuid4();
+    const payloadDraft = {
+      id: calon, respondent_code: this.kode, owner_id: pemilik,
+      started_at: mulai.toISOString(), status:"draft", progress:Object.assign({},this.progress,{version:Q_VERSI}),
+      questionnaire_version: "v2", instrument_version: "v2"
+    };
     try{
-      await supabaseRequest("buat-draft", c=>c.from("survey_responses").insert({
-        id: calon, respondent_code: this.kode, owner_id: pemilik,
-        started_at: mulai.toISOString(), status:"draft", progress:Object.assign({},this.progress,{version:Q_VERSI})
-      }), {ulang:1});
+      await supabaseRequest("buat-draft", c=>c.from("survey_responses").insert(payloadDraft), {ulang:1});
       this.id = calon; this.mulaiAt = mulai.getTime();
       return this.id;
     }catch(e){
+      if(e.code==="42703" || /column .* does not exist/i.test(String((e.asli&&e.asli.message)||e.message||""))){
+        delete payloadDraft.questionnaire_version;
+        delete payloadDraft.instrument_version;
+        try {
+          await supabaseRequest("buat-draft", c=>c.from("survey_responses").insert(payloadDraft), {ulang:1});
+          this.id = calon; this.mulaiAt = mulai.getTime();
+          return this.id;
+        } catch(eSub) {
+          e = eSub;
+        }
+      }
       /* kode responden sudah terpakai: ambil baris yang sudah ada, atau
          buat identitas baru bila barisnya tidak dapat dibaca. */
       const bentrok = e.code==="23505" || /sudah tercatat/i.test(e.message||"");
@@ -2560,7 +2588,7 @@ const Respon = {
       if(a.some(r=>r.session_token===Ident.kode)) throw new Error("Perangkat ini sudah mengirim jawaban.");
       Lokal.tambah({ id:uuid4(), created_at:new Date().toISOString(), submitted_at:new Date().toISOString(),
         session_token:Ident.kode, durasi_ms:durasiMs, status:"submitted",
-        excluded:false, tags:[], data:Object.assign({},data) });
+        excluded:false, tags:[], questionnaire_version:"v2", instrument_version:"v2", data:Object.assign({},data) });
       this.terkirim=true; return { ok:true, lokal:true };
     }
     await this.pastikanDraft();
@@ -2573,11 +2601,23 @@ const Respon = {
     await supabaseRequest("submit-profil", c=>c.from("respondent_profiles")
       .upsert(PETA.keProfil(this.id,data),{onConflict:"response_id"}));
     /* 3. tandai selesai pada record yang sama */
-    await supabaseRequest("submit-final", c=>c.from("survey_responses").update({
-        status:"submitted", submitted_at:new Date().toISOString(),
-        duration_ms: durasiMs||null, progress:this.progress,
-        last_sync_error:null, sync_error_count:0
-      }).eq("id", this.id));
+    const payloadSubmit = {
+      status:"submitted", submitted_at:new Date().toISOString(),
+      duration_ms: durasiMs||null, progress:this.progress,
+      last_sync_error:null, sync_error_count:0,
+      questionnaire_version: "v2", instrument_version: "v2"
+    };
+    try{
+      await supabaseRequest("submit-final", c=>c.from("survey_responses").update(payloadSubmit).eq("id", this.id));
+    }catch(e){
+      if(e.code==="42703" || /column .* does not exist/i.test(String((e.asli&&e.asli.message)||e.message||""))){
+        delete payloadSubmit.questionnaire_version;
+        delete payloadSubmit.instrument_version;
+        await supabaseRequest("submit-final", c=>c.from("survey_responses").update(payloadSubmit).eq("id", this.id));
+      } else {
+        throw e;
+      }
+    }
     this.terkirim = true;
     LS.del("draft_kuesioner");
     return { ok:true, id:this.id };
@@ -2709,23 +2749,35 @@ const Auth = {
 /* Kolom sintetis baru ada setelah migration-synthetic.sql dijalankan.
    Selama belum, aplikasi tetap berjalan penuh (terdeteksi otomatis). */
 let KOLOM_SINTETIS = true;
+let KOLOM_VERSION = true;
 
 async function muatRows(){
   if(!DB.siap) return Lokal.rows();
   const dasar = "id,respondent_code,started_at,submitted_at,created_at,duration_ms,status,excluded,tags";
+  let cols = dasar;
+  if(KOLOM_VERSION) cols += ",questionnaire_version,instrument_version";
+  if(KOLOM_SINTETIS) cols += ",is_synthetic,synthetic_batch_id";
   const urut  = q=>q.order("created_at",{ascending:false});
   let resp = null;
-  if(KOLOM_SINTETIS){
-    try{ resp = await DB.semua("survey_responses", dasar+",is_synthetic,synthetic_batch_id", urut); }
-    catch(e){
-      const hilang = e.code==="42703" || /is_synthetic|synthetic_batch_id|column .* does not exist/i
-        .test(String((e.asli&&e.asli.message)||e.message||""));
-      if(!hilang) throw e;
-      KOLOM_SINTETIS=false;
-      console.info("Kolom sintetis belum ada. Jalankan migration-synthetic.sql bila ingin memakai Randomize Majority Picker.");
+  try{
+    resp = await DB.semua("survey_responses", cols, urut);
+  }catch(e){
+    const msg = String((e.asli&&e.asli.message)||e.message||"");
+    if(e.code==="42703" || /column .* does not exist/i.test(msg)){
+      if(/is_synthetic|synthetic_batch_id/i.test(msg)) KOLOM_SINTETIS = false;
+      if(/questionnaire_version|instrument_version/i.test(msg)) KOLOM_VERSION = false;
+      let fb = dasar;
+      if(KOLOM_VERSION) fb += ",questionnaire_version,instrument_version";
+      if(KOLOM_SINTETIS) fb += ",is_synthetic,synthetic_batch_id";
+      try {
+        resp = await DB.semua("survey_responses", fb, urut);
+      } catch(e2) {
+        resp = await DB.semua("survey_responses", dasar, urut);
+      }
+    } else {
+      throw e;
     }
   }
-  if(resp===null) resp = await DB.semua("survey_responses", dasar, urut);
   if(!resp.length) return [];
   const jawab = await DB.semua("survey_answers",
     "response_id,question_id,section_id,answer_value,answer_numeric,answer_text,answer_json");
@@ -2733,10 +2785,18 @@ async function muatRows(){
   return resp.map(r=>{
     const tags = r.tags || [];
     const dData = PETA.keData(grup[r.id]||[]);
-    const isV2 = r.questionnaire_version === "v2" || (r.progress && r.progress.version === "v2") || Object.keys(dData).some(k=>/^X\d+$/.test(k));
+    const hasV2Keys = Object.keys(dData).some(k=>/^X\d+$|^Y\d+$|^R\d+$/.test(k));
+    const hasV1Keys = Object.keys(dData).some(k=>/^P\d+$|^E\d+$/.test(k));
+    let v = r.questionnaire_version || r.instrument_version || (r.progress && r.progress.version);
+    if (!v) {
+      if (hasV2Keys) v = "v2";
+      else if (hasV1Keys) v = "v1";
+      else v = "v2";
+    }
     return {
       id:r.id,
-      questionnaire_version: isV2 ? "v2" : "v1",
+      questionnaire_version: v,
+      instrument_version: v,
       created_at: r.submitted_at || r.created_at || r.started_at,
       started_at: r.started_at, submitted_at: r.submitted_at,
       session_token: r.respondent_code,
@@ -2748,7 +2808,7 @@ async function muatRows(){
       /* fallback lewat tags agar tetap terbaca sebelum migrasi dijalankan */
       is_synthetic: r.is_synthetic!=null ? !!r.is_synthetic : tags.indexOf("synthetic")>=0,
       synthetic_batch_id: r.synthetic_batch_id || tags.find(t=>/^SIM-/.test(t)) || null,
-      data: PETA.keData(grup[r.id]||[])
+      data: dData
     };
   });
 }
@@ -4080,7 +4140,8 @@ const Survey = {
   stepTinjau(body){
     const kosong=ITEMS.filter(i=>this.data[i]==null);
     const dKosong=DEMOGRAFI.filter(d=>!(this.data[d.id]||"").trim());
-    const siap = !kosong.length && !dKosong.length && this.setuju && (this.data.E1||[]).length;
+    const r1Jawab = (this.data.R1 && this.data.R1.length ? this.data.R1 : this.data.E1) || [];
+    const siap = !kosong.length && !dKosong.length && this.setuju && r1Jawab.length;
     const cek=(ok,teks)=>`<li style="list-style:none;display:flex;gap:9px;align-items:flex-start;margin-bottom:8px">
       <span aria-hidden="true" style="color:${ok?"var(--green-deep)":"var(--danger)"};font-weight:800">${ok?"\u2713":"\u2715"}</span>
       <span style="color:${ok?"var(--text)":"var(--danger)"};font-weight:${ok?500:600}">${teks}</span></li>`;
@@ -4096,7 +4157,7 @@ const Survey = {
         <ul style="margin:0;padding:0">
           ${cek(!dKosong.length,`Data demografi lengkap (${DEMOGRAFI.length-dKosong.length} dari ${DEMOGRAFI.length})`)}
           ${cek(!kosong.length,`${ITEMS.length-kosong.length} dari ${ITEMS.length} pernyataan terisi`)}
-          ${cek((this.data.E1||[]).length>0,`Aspek pada E1 dipilih (${(this.data.E1||[]).length} aspek)`)}
+          ${cek(r1Jawab.length>0,`Aspek prioritas pada R1 dipilih (${r1Jawab.length} aspek)`)}
           ${cek(this.setuju,"Persetujuan menjadi responden telah dicentang")}
         </ul>
         ${ECert.bannerTinjau()}
@@ -4104,7 +4165,7 @@ const Survey = {
           :`<div class="err" style="display:block;margin-top:10px">\u273f Masih ada yang perlu dilengkapi:
             <ul style="margin:8px 0 0">${dKosong.length?`<li>Identitas: ${dKosong.map(d=>d.id).join(", ")}</li>`:""}
             ${kosong.length?`<li>Pernyataan: ${kosong.join(", ")}</li>`:""}
-            ${(this.data.E1||[]).length?"":"<li>Pilihan aspek pada E1</li>"}</ul></div>`}
+            ${r1Jawab.length?"":"<li>Pilihan aspek prioritas pada R1</li>"}</ul></div>`}
         <div class="nav-row">
           <button class="btn ghost" data-act="prev">\u2190 Kembali</button>
           <button class="btn leaf" id="kirim" ${siap?"":"disabled"}>Kirim Jawaban</button></div>
@@ -4149,14 +4210,15 @@ const MENU=[
  {g:"Kualitatif & Luaran",items:[["essay","Pertanyaan Reflektif (R1–R3)","✍"],["grafik","Grafik","🎨"],["export","Export","⬇"],["laporan","Laporan Otomatis","📜"],["pengaturan","Pengaturan","⚙"]]},
  {g:"Simulasi",items:[["sintetis","Randomize Majority Picker","🎲"]]},
  {g:"Draft & Pemulihan",items:[["draft","Draft & Pemulihan","🛠"]]},
- {g:"E-Sertifikat",items:[["sertifikat","E-Sertifikat","🎓"]]}
+ {g:"E-Sertifikat",items:[["sertifikat","E-Sertifikat","🎓"]]},
+ {g:"Instrumen & Database",items:[["sinkronisasi","Sinkronisasi & Diagnostik","🔄"]]}
 ];
 
 const Admin = {
   rows:[], view:"dashboard", charts:{}, gagal:0, lock:0,
-  filter:{tipe:"asli",batch:"",status:"submitted",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
+  filter:{tipe:"asli",batch:"",status:"submitted",versi:"v2",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
           dari:"",sampai:"",ikutDikecualikan:false},
-  filterAwal(){ return {tipe:"asli",batch:"",status:"submitted",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
+  filterAwal(){ return {tipe:"asli",batch:"",status:"submitted",versi:"v2",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
           dari:"",sampai:"",ikutDikecualikan:false}; },
   /* true bila tampilan sedang memuat data simulasi */
   modeSintetis(){ return this.filter.tipe==="sintetis" || !!this.filter.batch; },
@@ -4310,7 +4372,7 @@ const Admin = {
     $("#vsub").textContent=`${f.length} responden aktif dari ${this.rowsTipe().length} tersimpan`
       + (this.filter.tipe==="sintetis" ? " \u00b7 DATA SIMULASI"
         : this.filter.tipe==="" ? " \u00b7 asli + simulasi" : "");
-    const tanpaFilter=["pengaturan","export","sintetis","sertifikat"];
+    const tanpaFilter=["pengaturan","export","sintetis","sertifikat","sinkronisasi"];
     $("#filterbox").innerHTML = tanpaFilter.includes(v) ? "" : this.filterHTML();
     if(!tanpaFilter.includes(v)) this.bindFilter();
     const fn=this["v_"+v]; const body=$("#vbody");
@@ -4338,6 +4400,11 @@ const Admin = {
         <span class="fbadge ${aktif?"on":""}">${aktif?`Filter aktif: ${aktif}`:"13 filter tersedia"}</span>
         <span class="chev" aria-hidden="true">\u25be</span></summary><div>
       <div class="filters">
+        <div><label class="fl" style="font-size:.78rem">Instrumen kuesioner</label>
+          <select data-f="versi">
+            <option value="v2" ${f.versi==="v2"?"selected":""}>Instrumen v2 (X1–X19, Y1–Y10) [Utama]</option>
+            <option value="v1" ${f.versi==="v1"?"selected":""}>Instrumen v1 (P1–P29, E1–E3) [Arsip]</option>
+            <option value="semua" ${f.versi==="semua"?"selected":""}>Semua instrumen</option></select></div>
         <div><label class="fl" style="font-size:.78rem">Jenis data</label>
           <select data-f="tipe">
             <option value="asli" ${f.tipe==="asli"?"selected":""}>Original Respondents</option>
@@ -4390,6 +4457,7 @@ const Admin = {
       if(f.tipe==="sintetis" && !r.is_synthetic) return false;
       if(f.batch && r.synthetic_batch_id!==f.batch) return false;
       if(f.status && (r.status||"submitted")!==f.status) return false;
+      if(f.versi && f.versi!=="semua" && (r.questionnaire_version||"v2")!==f.versi) return false;
       if(q && !String(r.respondent_code||r.session_token||"").toLowerCase().includes(q)
            && !String(r.id||"").toLowerCase().includes(q)) return false;
       if(!f.ikutDikecualikan && r.excluded) return false;
@@ -4532,10 +4600,13 @@ const Admin = {
   detail(id){
     const r=this.rows.find(x=>x.id===id); if(!r) return;
     const d=r.data||{};
+    const r1 = (d.R1 && d.R1.length ? d.R1 : d.E1) || [];
+    const r1Lain = d.R1_lainnya || d.E1_lainnya || "";
     const baris=[...DEMOGRAFI.map(x=>[x.id+". "+x.q, esc(K.kolom(r,x.id))]),
-      ...ITEMS.map(it=>[it+". "+P_TEKS[it], d[it]!=null?`${d[it]} — ${SKALA.find(s=>s.v===Number(d[it])).l}`:"–"]),
-      ["E1. Aspek terpilih",(d.E1||[]).map(esc).join(", ")+(d.E1_lainnya?" ("+esc(d.E1_lainnya)+")":"")],
-      ["E2",esc(d.E2||"–")],["E3",esc(d.E3||"–")]];
+      ...ITEMS.map(it=>[it+". "+(P_TEKS[it]||it), d[it]!=null?`${d[it]} — ${(SKALA.find(s=>s.v===Number(d[it]))||{}).l||""}`:"–"]),
+      ["R1. Aspek terpilih", (Array.isArray(r1)?r1:[r1]).map(esc).join(", ")+(r1Lain?" ("+esc(r1Lain)+")":"")],
+      ["R2. Solusi & Saran", esc(d.R2 || d.E2 || "–")],
+      ["R3. Pandangan Evaluatif", esc(d.R3 || d.E3 || "–")]];
     const w=window.open("","_blank","width=760,height=800");
     w.document.write(`<html><head><meta charset="utf-8"><title>Detail responden</title>
       <style>body{font-family:Poppins,system-ui,sans-serif;background:#FBF4E9;color:#4B3F55;padding:24px;line-height:1.6}
@@ -4974,7 +5045,12 @@ Object.assign(Admin,{
     const rows=f.filter(r=>objek.every(o=>K.meanSet(r,o.items)!=null));
     const vec={}; objek.forEach(o=>vec[o.id]=rows.map(r=>K.meanSet(r,o.items)));
     const N=rows.length;
-    const pasang=[["X","Y"],["X1","Y"],["X2","Y"],["X3","Y"],["X4","Y"],["X","Y1"],["X","Y2"],["X","Y3"]];
+    const indX=(K.struktur.variabel.find(v=>v.id==="X")||{}).indikator||[];
+    const indY=(K.struktur.variabel.find(v=>v.id==="Y")||{}).indikator||[];
+    const pasang=[["X","Y"]];
+    indX.forEach(ix=>pasang.push([ix.id,"Y"]));
+    indY.forEach(iy=>pasang.push(["X",iy.id]));
+    indX.forEach(ix=>{ indY.forEach(iy=>pasang.push([ix.id,iy.id])); });
     const bintang=p=>p<0.01?"**":p<0.05?"*":"";
     const kuat=r=>{const a=Math.abs(r);return a<0.2?"Sangat lemah":a<0.4?"Lemah":a<0.6?"Sedang":a<0.8?"Kuat":"Sangat kuat";};
     body.innerHTML=`
@@ -4982,7 +5058,9 @@ Object.assign(Admin,{
       ${this.tabel(["Pasangan",{t:"N",num:1},{t:"Pearson r",num:1},{t:"p",num:1},{t:"Spearman ρ",num:1},{t:"p",num:1},"Kekuatan (Pearson)","Arah"],
         pasang.filter(p=>vec[p[0]]&&vec[p[1]]).map(p=>{
           const a=S.pearson(vec[p[0]],vec[p[1]]), b=S.spearman(vec[p[0]],vec[p[1]]);
-          return [`${p[0]} ↔ ${p[1]}`,{v:String(N),cls:"num"},
+          const namaA = (objek.find(o=>o.id===p[0])||{}).nama || p[0];
+          const namaB = (objek.find(o=>o.id===p[1])||{}).nama || p[1];
+          return [`${p[0]} (${namaA}) ↔ ${p[1]} (${namaB})`,{v:String(N),cls:"num"},
             {v:nf(a.r,3)+bintang(a.p),cls:"num"},{v:a.p<0.001?"&lt; 0,001":nf(a.p,3),cls:"num"},
             {v:nf(b.rho,3)+bintang(b.p),cls:"num"},{v:b.p<0.001?"&lt; 0,001":nf(b.p,3),cls:"num"},
             kuat(a.r), a.r>=0?"Searah (positif)":"Berlawanan (negatif)"]; }))}
@@ -5007,9 +5085,11 @@ Object.assign(Admin,{
         <p class="note" style="margin-top:10px">Hijau menandakan korelasi positif, merah muda menandakan korelasi negatif; semakin pekat semakin kuat. Arahkan kursor ke sel untuk melihat nilai p.</p>`;
     };
     drawMat(); $("#matTipe").onchange=drawMat;
-    const indX=K.struktur.variabel.find(v=>v.id==="X").indikator.map(i=>i.id);
-    this.chart("chKorBar",{type:"bar",data:{labels:indX,
-      datasets:[{label:"r terhadap Y",data:indX.map(id=>S.pearson(vec[id],vec["Y"]).r),
+    const indXObj=(K.struktur.variabel.find(v=>v.id==="X")||{}).indikator||[];
+    const indXIds=indXObj.map(i=>i.id);
+    const indXLabels=indXObj.map(i=>i.nama||i.id);
+    this.chart("chKorBar",{type:"bar",data:{labels:indXLabels,
+      datasets:[{label:"r terhadap Y",data:indXIds.map(id=>S.pearson(vec[id],vec["Y"]).r),
         backgroundColor:this.palet}]},
       options:{scales:{y:{min:-1,max:1}},plugins:{legend:{display:false}}}});
   },
@@ -5043,10 +5123,10 @@ Object.assign(Admin,{
         ${tabKoef(sederhana,["(Constant)","X — "+varX.nama])}
         <p class="note" style="margin-top:12px">Persamaan regresi: <strong>${pers(sederhana,["","X"])}</strong></p>
         <div style="margin-top:14px">${this.box("chReg","Scatter plot dengan garis regresi",320)}</div></div></details>
-      <details class="acc" open><summary>Regresi linear berganda — X1, X2, X3, X4 → Y</summary><div>
+      <details class="acc" open><summary>Regresi linear berganda — Dimensi X → Y</summary><div>
         ${tabModel(berganda)}<div style="height:10px"></div>${tabAnova(berganda)}<div style="height:10px"></div>
-        ${tabKoef(berganda,["(Constant)",...indX.map(i=>i.id+" — "+i.nama)])}
-        <p class="note" style="margin-top:12px">Persamaan regresi: <strong>${pers(berganda,["",...indX.map(i=>i.id)])}</strong></p>
+        ${tabKoef(berganda,["(Constant)",...indX.map(i=>i.nama)])}
+        <p class="note" style="margin-top:12px">Persamaan regresi: <strong>${pers(berganda,["",...indX.map(i=>i.nama)])}</strong></p>
         <div style="margin-top:14px">${this.box("chRegB","Koefisien B tiap indikator",280)}</div></div></details>
       <p class="note" style="margin-top:14px;border-left-color:var(--mawar)">Hasil di atas adalah perhitungan statistik atas data yang tersimpan, bukan kesimpulan penelitian yang tersusun otomatis. Besarnya pengaruh dalam model regresi tidak sama dengan hubungan sebab-akibat; penafsiran tetap memerlukan pembahasan teoretis dan pertimbangan desain penelitian.</p>`;
     const mn=S.min(x1),mx=S.max(x1);
@@ -5055,7 +5135,7 @@ Object.assign(Admin,{
       {label:"Garis regresi",type:"line",borderColor:"#7A6294",pointRadius:0,
         data:[{x:mn,y:sederhana.beta[0]+sederhana.beta[1]*mn},{x:mx,y:sederhana.beta[0]+sederhana.beta[1]*mx}]}]},
       options:{scales:{x:{title:{display:true,text:"Mean X"}},y:{title:{display:true,text:"Mean Y"}}}}});
-    this.chart("chRegB",{type:"bar",data:{labels:indX.map(i=>i.id),
+    this.chart("chRegB",{type:"bar",data:{labels:indX.map(i=>i.nama||i.id),
       datasets:[{label:"Koefisien B",data:berganda.beta.slice(1),backgroundColor:this.palet}]},
       options:{plugins:{legend:{display:false}}}});
   },
@@ -6630,13 +6710,15 @@ Object.assign(Admin,{
       <p>Selain panel ini, data dapat dibuka langsung di Supabase melalui <strong>Table Editor</strong> pada tabel <code>survey_responses</code> dan <code>survey_answers</code>.</p>
       <h4>8. Skrip SQL</h4>
       <div class="pill-row" style="justify-content:flex-start">
+        <button class="btn sm" id="unduhMigV2">Unduh supabase_questionnaire_v2_sync.sql</button>
+        <button class="btn sm ghost" id="salinMigV2">Salin migrasi v2</button>
         <button class="btn sm ghost" id="salinSQL">Salin skema</button>
         <button class="btn sm ghost" id="unduhSQL">Unduh schema.sql</button>
         <button class="btn sm ghost" id="salinSeed">Salin seed</button>
         <button class="btn sm ghost" id="unduhSeed">Unduh seed.sql</button>
         <button class="btn sm ghost" id="unduhMig2">Unduh migration-synthetic.sql</button>
       </div>
-      <p class="note" style="margin-top:8px">Berkas migrasi bersifat opsional — hanya diperlukan bila Anda memakai menu <strong>Randomize Majority Picker</strong> untuk membuat data simulasi.</p>
+      <p class="note" style="margin-top:8px">Berkas migrasi v2 mencakup 17 seksi dan 42 butir canonical (D1–D10, X1–X19, Y1–Y10, R1–R3) serta penyesuaian versi respons.</p>
       <label class="fl" style="margin-top:12px">Skema SQL — jalankan pertama</label>
       <textarea readonly style="min-height:240px;font-family:ui-monospace,monospace;font-size:.78rem">${esc(SQL_SKEMA)}</textarea>
       <label class="fl" style="margin-top:12px">Seed SQL — section &amp; pertanyaan, jalankan kedua</label>
@@ -6680,6 +6762,10 @@ Object.assign(Admin,{
       catch(e){ toast(e.message,"bad"); } };
     const salinTeks=(teks,pesan)=>navigator.clipboard.writeText(teks).then(()=>toast(pesan,"ok"),
       ()=>toast("Salin manual dari kotak di bawah","bad"));
+    const bUnduhV2=$("#unduhMigV2");
+    if(bUnduhV2) bUnduhV2.onclick=()=>saveFile("supabase_questionnaire_v2_sync.sql",new Blob([bangunSeedSQL()],{type:"text/plain;charset=utf-8"}));
+    const bSalinV2=$("#salinMigV2");
+    if(bSalinV2) bSalinV2.onclick=()=>salinTeks(bangunSeedSQL(),"Skrip migrasi v2 disalin");
     $("#salinSQL").onclick=()=>salinTeks(SQL_SKEMA,"Skema SQL disalin");
     $("#unduhSQL").onclick=()=>saveFile("schema.sql",new Blob([SQL_SKEMA],{type:"text/plain;charset=utf-8"}));
     $("#salinSeed").onclick=()=>salinTeks(bangunSeedSQL(),"Seed SQL disalin");
@@ -6695,10 +6781,11 @@ Object.assign(Admin,{
         const bias=3.4+gauss()*0.5;
         const d={}; DEMOGRAFI.forEach(x=>{ d[x.id]= x.t==="text" ? (x.id==="D3"?"Universitas Palangka Raya":"FISIP / Ilmu Administrasi Negara") : pick(x.o); });
         ITEMS.forEach(it=>{ let v=Math.round(bias+gauss()*0.8); d[it]=Math.max(1,Math.min(5,v)); });
-        d.E1=E1_OPSI.filter(()=>Math.random()<0.35); if(!d.E1.length) d.E1=[pick(E1_OPSI)];
-        d.E2="[DATA UJI] Koperasi kecil perlu pendampingan dan kemudahan perizinan.";
-        d.E3="[DATA UJI] Isu ini penting bagi masyarakat sekitar dan kelestarian lingkungan.";
-        try{ await Store.submit({session:"demo-"+uid(),durasi_ms:600000+Math.random()*400000,data:d}); }catch(e){}
+        d.R1=R1_OPSI.filter(()=>Math.random()<0.35); if(!d.R1.length) d.R1=[pick(R1_OPSI)];
+        d.R2="[DATA UJI] Koperasi kecil perlu pendampingan dan kemudahan perizinan.";
+        d.R3="[DATA UJI] Isu ini penting bagi masyarakat sekitar dan kelestarian lingkungan.";
+        d.E1=d.R1; d.E2=d.R2; d.E3=d.R3;
+        try{ await Store.submit({session:"demo-"+uid(),durasi_ms:600000+Math.random()*400000,data:d,questionnaire_version:"v2"}); }catch(e){}
       }
       this.rows=await Store.list(); toast("40 data uji ditambahkan","ok"); this.go("dashboard"); };
     const hd=$("#hapusDemo");
@@ -8538,7 +8625,388 @@ Object.assign(Admin,{
       if(hasil.already) toast("Response ini sudah submitted.","ok");
       else toast(override?"Draft diterima dengan override":"Draft diterima \u2014 E-Sertifikat dapat dibuka","ok");
       this.drRows=await DraftAdmin.daftar(); this.drGambar(body);
-    }catch(e){ toast(DraftAdmin.pesan(e),"bad"); } }
+    }catch(e){ toast(DraftAdmin.pesan(e),"bad"); } },
+
+  /* ---------------- ADMIN → Sinkronisasi & Diagnostik v2 ---------------- */
+  syncCari: "",
+
+  async v_sinkronisasi(body, f){
+    const v2Rows = (this.rows||[]).filter(r=>r.questionnaire_version==="v2" || (!r.questionnaire_version && Object.keys(r.data||{}).some(k=>k.startsWith("X"))));
+    const v1Rows = (this.rows||[]).filter(r=>r.questionnaire_version==="v1" || (!r.questionnaire_version && Object.keys(r.data||{}).some(k=>k.startsWith("P"))));
+
+    body.innerHTML = `
+      <div class="grid g4" style="margin-bottom:16px">
+        ${this.kpi("📋", "42", "Butir Instrumen Canonical")}
+        ${this.kpi("🏛️", "17", "Seksi / Dimensi Database")}
+        ${this.kpi("👥", v2Rows.length, "Responden Aktif (v2)")}
+        ${this.kpi("📦", v1Rows.length, "Responden Arsip (v1)")}
+      </div>
+
+      <div class="chartbox" style="margin-bottom:16px">
+        <div class="hd"><strong>Sinkronisasi &amp; Diagnostik Instrumen v2</strong>
+          <span style="font-size:.82rem;color:var(--text-muted)">Versi: <strong>v2 Canonical</strong></span>
+        </div>
+        <p style="font-size:.88rem;color:var(--text-muted);margin:8px 0 14px">
+          Pusat kendali keselarasan skema 42 butir kuesioner canonical (D1–D10, X1–X19, Y1–Y10, R1–R3) antara frontend single-page application, mesin kalkulasi statistik, dan database Supabase PostgreSQL.
+        </p>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <button class="btn sm" id="btnSyncCheck">🔍 Periksa Status Database Supabase</button>
+          <button class="btn sm rose" id="btnSyncApply">⚡ Sinkronisasi Skema ke Supabase</button>
+          <button class="btn sm ghost" id="btnSyncCopy">📋 Salin SQL Migrasi v2</button>
+          <button class="btn sm ghost" id="btnSyncDl">💾 Unduh supabase_questionnaire_v2_sync.sql</button>
+        </div>
+
+        <div id="syncDiagStatus" style="display:none;margin-top:14px"></div>
+      </div>
+
+      <div class="chartbox" style="margin-bottom:16px">
+        <div class="hd"><strong>Katalog 42 Butir Instrumen Penelitian Canonical (v2)</strong>
+          <input type="search" id="syncCari" placeholder="Cari kode butir, dimensi, teks..." value="${esc(this.syncCari)}" style="width:260px;font-size:.85rem;padding:6px 12px">
+        </div>
+        <div id="syncTabelWadah"></div>
+      </div>
+
+      <details class="acc" style="margin-top:16px"><summary>Skrip SQL Migrasi &amp; Sinkronisasi v2 (Non-Destruktif &amp; Idempoten)</summary><div>
+        <p class="note" style="margin-bottom:10px">
+          Skrip SQL berikut aman dijalankan berulang kali di <strong>Supabase → SQL Editor → Run</strong>. Menggunakan klausa <code>ON CONFLICT DO UPDATE</code> dan <code>ADD COLUMN IF NOT EXISTS</code> sehingga data responden lama (v1) tetap aman dan terisolasi.
+        </p>
+        <textarea readonly id="syncSqlBox" style="min-height:220px;font-family:ui-monospace,monospace;font-size:.76rem">${esc(bangunSeedSQL())}</textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn sm ghost" id="btnSyncCopy2">Salin SQL</button>
+          <button class="btn sm" id="btnSyncDl2">Unduh supabase_questionnaire_v2_sync.sql</button>
+        </div>
+      </div></details>
+    `;
+
+    this.syncGambarTabel(body);
+
+    const cariInput = $("#syncCari", body);
+    if(cariInput) cariInput.oninput = e => {
+      this.syncCari = e.target.value;
+      this.syncGambarTabel(body);
+    };
+
+    const copySql = () => {
+      try {
+        navigator.clipboard.writeText(bangunSeedSQL());
+        toast("SQL migrasi v2 berhasil disalin ke clipboard", "ok");
+      } catch(e) {
+        toast("Salin manual dari kotak teks di bawah.", "bad");
+      }
+    };
+    const dlSql = () => {
+      saveFile("supabase_questionnaire_v2_sync.sql", new Blob([bangunSeedSQL()], {type:"text/plain;charset=utf-8"}));
+      toast("Berkas supabase_questionnaire_v2_sync.sql diunduh", "ok");
+    };
+
+    const bCopy = $("#btnSyncCopy", body); if(bCopy) bCopy.onclick = copySql;
+    const bCopy2 = $("#btnSyncCopy2", body); if(bCopy2) bCopy2.onclick = copySql;
+    const bDl = $("#btnSyncDl", body); if(bDl) bDl.onclick = dlSql;
+    const bDl2 = $("#btnSyncDl2", body); if(bDl2) bDl2.onclick = dlSql;
+
+    const bCheck = $("#btnSyncCheck", body);
+    if(bCheck) bCheck.onclick = () => this.syncJalankanDiagnostik(body);
+
+    const bApply = $("#btnSyncApply", body);
+    if(bApply) bApply.onclick = () => this.syncJalankanUpsert(body);
+  },
+
+  syncGambarTabel(body){
+    const wadah = $("#syncTabelWadah", body);
+    if(!wadah) return;
+    const q = (this.syncCari || "").trim().toLowerCase();
+
+    const items = [
+      ...DEMOGRAFI.map((d, i) => ({
+        no: i + 1,
+        id: d.id,
+        grup: "Demografi (D)",
+        section: "IDENT — Identitas Responden",
+        tipe: d.t === "radio" ? "Pilihan Ganda" : "Teks Bebas",
+        variabel: "Demografi",
+        indikator: "Profil Responden",
+        teks: d.q,
+        skala: d.t === "radio" ? (d.o || []).join(", ") : "Teks input"
+      })),
+      ...ITEMS.map((it, i) => {
+        const bg = BAGIAN.find(b => b.items.includes(it));
+        const isX = it.startsWith("X");
+        return {
+          no: 10 + i + 1,
+          id: it,
+          grup: isX ? "Variabel X (Keadilan Kebijakan)" : "Variabel Y (Sikap Mahasiswa)",
+          section: (bg ? bg.id : "") + " — " + (bg ? bg.judul : ""),
+          tipe: "Skala Likert (1–5)",
+          variabel: isX ? "X (Keadilan Kebijakan)" : "Y (Sikap Mahasiswa)",
+          indikator: bg ? bg.judul : "-",
+          teks: P_TEKS[it] || "",
+          skala: "STS (1) .. SS (5)"
+        };
+      }),
+      {
+        no: 40,
+        id: "R1",
+        grup: "Reflektif (R)",
+        section: "REFLEKTIF — Pertanyaan Reflektif",
+        tipe: "Multi-pilihan (Checkbox)",
+        variabel: "Kualitatif / Reflektif",
+        indikator: "Prioritas Perluasan Akses",
+        teks: R1_Q,
+        skala: R1_OPSI.join(", ")
+      },
+      {
+        no: 41,
+        id: "R2",
+        grup: "Reflektif (R)",
+        section: "REFLEKTIF — Pertanyaan Reflektif",
+        tipe: "Teks Naratif (Textarea)",
+        variabel: "Kualitatif / Reflektif",
+        indikator: "Saran Solutif Kemitraan",
+        teks: R2_Q,
+        skala: "Input esai naratif"
+      },
+      {
+        no: 42,
+        id: "R3",
+        grup: "Reflektif (R)",
+        section: "REFLEKTIF — Pertanyaan Reflektif",
+        tipe: "Teks Naratif (Textarea)",
+        variabel: "Kualitatif / Reflektif",
+        indikator: "Pendapat Evaluatif Kebijakan",
+        teks: R3_Q,
+        skala: "Input esai naratif"
+      }
+    ];
+
+    const filtrasi = q ? items.filter(it => 
+      it.id.toLowerCase().includes(q) ||
+      it.grup.toLowerCase().includes(q) ||
+      it.section.toLowerCase().includes(q) ||
+      it.indikator.toLowerCase().includes(q) ||
+      it.teks.toLowerCase().includes(q)
+    ) : items;
+
+    if(!filtrasi.length){
+      wadah.innerHTML = `<div class="empty"><p>Tidak ada butir instrumen yang cocok dengan kata kunci &ldquo;${esc(q)}&rdquo;.</p></div>`;
+      return;
+    }
+
+    wadah.innerHTML = this.tabel(
+      [{t:"No",num:1},"ID Butir","Grup / Variabel","Dimensi / Indikator","Tipe","Teks Pertanyaan / Pernyataan"],
+      filtrasi.map(it => [
+        {v:String(it.no), cls:"num"},
+        `<strong>${esc(it.id)}</strong>`,
+        `<span style="font-size:.82rem">${esc(it.grup)}</span>`,
+        `<span style="font-size:.82rem">${esc(it.indikator)}</span>`,
+        `<span style="font-size:.82rem">${esc(it.tipe)}</span>`,
+        `<span class="wrapcell" style="display:block;max-width:440px;font-size:.84rem">${esc(it.teks)}</span>`
+      ])
+    );
+  },
+
+  async syncJalankanDiagnostik(body){
+    const statusBox = $("#syncDiagStatus", body);
+    if(!statusBox) return;
+    statusBox.style.display = "block";
+    statusBox.innerHTML = `<div class="card" style="padding:14px;background:var(--bg-subtle,rgba(0,0,0,.03))"><span class="spin"></span> Memeriksa skema database Supabase...</div>`;
+
+    if(!Store.cloud || !DB.siap || !DB.client){
+      statusBox.innerHTML = `
+        <div class="card" style="padding:16px;border-left:4px solid var(--mawar,#c4718a)">
+          <strong>🔌 Supabase Belum Terhubung</strong>
+          <p style="font-size:.88rem;margin:6px 0 0">
+            Aplikasi saat ini berjalan dalam mode offline atau lokal (tanpa Supabase). Periksa konfigurasi <code>CONFIG.SUPABASE_URL</code> dan <code>CONFIG.SUPABASE_ANON_KEY</code>.
+          </p>
+        </div>`;
+      return;
+    }
+
+    try {
+      const { data: secData, error: secErr } = await DB.client
+        .from("survey_sections")
+        .select("id, title, variable, sort_order")
+        .order("sort_order", { ascending: true });
+
+      const { data: qData, error: qErr } = await DB.client
+        .from("survey_questions")
+        .select("id, question_type, variable, indicator, scoreable, instrument_version");
+
+      let hasVerCol = false;
+      try {
+        const { error: testColErr } = await DB.client
+          .from("survey_responses")
+          .select("id, questionnaire_version")
+          .limit(1);
+        if(!testColErr || testColErr.code !== "42703") hasVerCol = true;
+      } catch(e){ hasVerCol = false; }
+
+      const secCount = secData ? secData.length : 0;
+      const v2Questions = (qData || []).filter(q => /^(D|X|Y|R)[0-9]+$/.test(q.id));
+      const v2X = v2Questions.filter(q => q.id.startsWith("X")).length;
+      const v2Y = v2Questions.filter(q => q.id.startsWith("Y")).length;
+      const v2D = v2Questions.filter(q => q.id.startsWith("D")).length;
+      const v2R = v2Questions.filter(q => q.id.startsWith("R")).length;
+      const v1Questions = (qData || []).filter(q => /^(P|E)[0-9]+$/.test(q.id)).length;
+
+      const allSynced = secCount >= 8 && v2Questions.length === 42 && hasVerCol;
+
+      statusBox.innerHTML = `
+        <div class="card" style="padding:16px;border-left:4px solid ${allSynced ? 'var(--hijau,#48bb78)' : '#f6ad55'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>${allSynced ? '✅ Database Supabase Sinkron Penuh (v2)' : '⚠️ Diagnostik: Skema Memerlukan Penyesuaian'}</strong>
+            <span style="font-size:.8rem;color:var(--text-muted)">Waktu: ${new Date().toLocaleTimeString()}</span>
+          </div>
+          <div class="grid g3" style="gap:10px;margin-top:12px;font-size:.85rem">
+            <div style="padding:8px 12px;background:var(--bg,rgba(255,255,255,.6));border-radius:6px">
+              <strong>Seksi (survey_sections):</strong><br>
+              ${secErr ? `<span style="color:var(--mawar)">Galat: ${esc(secErr.message)}</span>` : `${secCount} seksi terdaftar`}
+            </div>
+            <div style="padding:8px 12px;background:var(--bg,rgba(255,255,255,.6));border-radius:6px">
+              <strong>Butir v2 (survey_questions):</strong><br>
+              ${qErr ? `<span style="color:var(--mawar)">Galat: ${esc(qErr.message)}</span>` : `${v2Questions.length}/42 butir canonical (${v2D} D, ${v2X} X, ${v2Y} Y, ${v2R} R)`}
+            </div>
+            <div style="padding:8px 12px;background:var(--bg,rgba(255,255,255,.6));border-radius:6px">
+              <strong>Kolom questionnaire_version:</strong><br>
+              ${hasVerCol ? '<span style="color:var(--hijau,#2f855a)">✓ Aktif (didukung)</span>' : '<span style="color:#c05621">Belum ada (jalankan SQL migrasi)</span>'}
+            </div>
+          </div>
+          ${v1Questions > 0 ? `<p class="note" style="margin-top:10px">📦 Terdeteksi ${v1Questions} butir instrumen versi v1 lama pada database (tersimpan aman untuk arsip responden v1).</p>` : ''}
+          <div style="margin-top:12px">
+            ${allSynced ? '<p style="color:var(--hijau,#2f855a);font-weight:600;margin:0">✓ Seluruh 42 butir canonical v2 dan tabel referensi telah tersinkronisasi sempurna.</p>' : '<p style="color:#c05621;margin:0">Silakan klik tombol <strong>⚡ Sinkronisasi Skema ke Supabase</strong> di atas, atau jalankan skrip SQL di Supabase SQL Editor.</p>'}
+          </div>
+        </div>`;
+    } catch(err) {
+      statusBox.innerHTML = `
+        <div class="card" style="padding:16px;border-left:4px solid var(--mawar)">
+          <strong>Terjadi Galat saat Diagnostik</strong>
+          <p style="font-size:.88rem;color:var(--mawar);margin:6px 0 0">${esc(err.message)}</p>
+        </div>`;
+    }
+  },
+
+  async syncJalankanUpsert(body){
+    if(!Store.cloud || !DB.siap || !DB.client){
+      toast("Supabase belum terhubung. Periksa konfigurasi.", "bad");
+      return;
+    }
+    const btn = $("#btnSyncApply", body);
+    if(btn){ btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Menyinkronkan...`; }
+
+    try {
+      const sections = [
+        { id:"IDENT", title:"Identitas Responden", description:"Data demografi responden (tanpa data sensitif/pribadi).", sort_order:1, is_active:true, variable:null, code:"IDENT" },
+        ...BAGIAN.map((b,i)=>({ id:b.section_key||b.id, title:b.judul, description:b.intro, sort_order:i+2, is_active:true, variable:b.variable_id, code:b.id })),
+        { id:"REFLEKTIF", title:"Pertanyaan Reflektif", description:"Pertanyaan reflektif dan kualitatif pada akhir kuesioner.", sort_order:BAGIAN.length+2, is_active:true, variable:null, code:"REFLEKTIF" },
+        ...BAGIAN.map((b,i)=>({ id:b.id, title:b.judul, description:"Alias "+b.id+": "+b.judul, sort_order:i+10, is_active:true, variable:b.variable_id, code:b.id })),
+        { id:"REFLECTIVE", title:"Pertanyaan Reflektif", description:"Alias REFLECTIVE", sort_order:BAGIAN.length+10, is_active:true, variable:null, code:"REFLECTIVE" }
+      ];
+
+      const { error: secErr } = await DB.client
+        .from("survey_sections")
+        .upsert(sections, { onConflict: "id" });
+      if(secErr) console.warn("Upsert sections warning:", secErr);
+
+      let urut = 0;
+      const questions = [];
+
+      DEMOGRAFI.forEach((d, i) => {
+        urut++;
+        const opsi = d.t==="radio" ? (d.other ? d.o.concat(["Lainnya"]) : d.o) : null;
+        questions.push({
+          id: d.id,
+          section_id: "IDENT",
+          question_number: i + 1,
+          question_text: d.q,
+          question_type: d.t === "radio" ? "radio" : "text",
+          required: true,
+          options: opsi,
+          scale_min: null,
+          scale_max: null,
+          is_active: true,
+          sort_order: urut,
+          variable: null,
+          variable_group: null,
+          indicator: null,
+          scoreable: false,
+          instrument_version: "v2"
+        });
+      });
+
+      const opsiSkala = SKALA.map(s => ({ value: s.v, code: s.k, label: s.l }));
+      BAGIAN.forEach(b => {
+        b.items.forEach((it, j) => {
+          urut++;
+          const vGroup = b.variable_id === "X" ? "Variabel X — Keadilan Kebijakan" : "Variabel Y — Sikap Mahasiswa";
+          questions.push({
+            id: it,
+            section_id: b.section_key || b.id,
+            question_number: j + 1,
+            question_text: P_TEKS[it],
+            question_type: "likert",
+            required: true,
+            options: opsiSkala,
+            scale_min: 1,
+            scale_max: 5,
+            is_active: true,
+            sort_order: urut,
+            variable: b.variable_id,
+            variable_group: vGroup,
+            indicator: b.judul,
+            scoreable: true,
+            instrument_version: "v2"
+          });
+        });
+      });
+
+      const ref = [
+        { id:"R1", num:1, q:R1_Q, type:"checkbox", req:true, opts:R1_OPSI.concat(["Lainnya"]) },
+        { id:"R2", num:2, q:R2_Q, type:"textarea", req:false, opts:null },
+        { id:"R3", num:3, q:R3_Q, type:"textarea", req:false, opts:null }
+      ];
+      ref.forEach(e => {
+        urut++;
+        questions.push({
+          id: e.id,
+          section_id: "REFLEKTIF",
+          question_number: e.num,
+          question_text: e.q,
+          question_type: e.type,
+          required: e.req,
+          options: e.opts,
+          scale_min: null,
+          scale_max: null,
+          is_active: true,
+          sort_order: urut,
+          variable: null,
+          variable_group: null,
+          indicator: null,
+          scoreable: false,
+          instrument_version: "v2"
+        });
+      });
+
+      const { error: qErr } = await DB.client
+        .from("survey_questions")
+        .upsert(questions, { onConflict: "id" });
+
+      if(qErr) throw qErr;
+
+      try {
+        await DB.client
+          .from("app_settings")
+          .upsert({ setting_key: "struktur", setting_value: K.struktur, updated_at: new Date().toISOString() }, { onConflict: "setting_key" });
+      } catch(e){}
+
+      toast("✓ Skema 42 butir instrumen v2 berhasil disinkronisasi ke Supabase!", "ok");
+      await this.syncJalankanDiagnostik(body);
+    } catch(err) {
+      toast("Galat sinkronisasi: " + err.message, "bad");
+      console.error(err);
+    } finally {
+      if(btn){ btn.disabled = false; btn.innerHTML = `⚡ Sinkronisasi Skema ke Supabase`; }
+    }
+  }
 });
 
 /* ============================================================
