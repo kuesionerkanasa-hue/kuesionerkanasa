@@ -2887,7 +2887,7 @@ const Store = {
     return { ok:true, id:rid };
   },
 
-  /* ---------- data sintetis (Randomize Majority Picker) ---------- */
+  /* ---------- data sintetis (Automatic Majority Data Input) ---------- */
   /* Batch insert: satu request untuk banyak baris, bukan satu per responden. */
   async sintetisSimpan({respons, jawaban, profil}, lapor){
     if(!DB.siap) throw new Error("Fitur ini memerlukan koneksi Supabase.");
@@ -4208,7 +4208,7 @@ const MENU=[
  {g:"Deskripsi",items:[["deskriptif","Statistik Deskriptif","📊"],["item","Analisis Item","🌿"],["indikator","Analisis Indikator","🍄"],["variabel","Analisis Variabel","🌸"],["kategori","Kategorisasi","🏷"],["crosstab","Cross Tabulation","🔀"]]},
  {g:"Uji Statistik",items:[["validitas","Uji Validitas","✔"],["reliabilitas","Uji Reliabilitas","♾"],["normalitas","Uji Normalitas","🔔"],["korelasi","Korelasi","🔗"],["regresi","Regresi","📈"],["beda","Uji T & ANOVA","⚖"],["chisq","Chi-Square","✕"]]},
  {g:"Kualitatif & Luaran",items:[["essay","Pertanyaan Reflektif (R1–R3)","✍"],["grafik","Grafik","🎨"],["export","Export","⬇"],["laporan","Laporan Otomatis","📜"],["pengaturan","Pengaturan","⚙"]]},
- {g:"Simulasi",items:[["sintetis","Randomize Majority Picker","🎲"]]},
+ {g:"Simulasi",items:[["sintetis","Automatic Majority Data Input","🎲"]]},
  {g:"Draft & Pemulihan",items:[["draft","Draft & Pemulihan","🛠"]]},
  {g:"E-Sertifikat",items:[["sertifikat","E-Sertifikat","🎓"]]},
  {g:"Instrumen & Database",items:[["sinkronisasi","Sinkronisasi & Diagnostik","🔄"]]}
@@ -4216,9 +4216,9 @@ const MENU=[
 
 const Admin = {
   rows:[], view:"dashboard", charts:{}, gagal:0, lock:0,
-  filter:{tipe:"asli",batch:"",status:"submitted",versi:"v2",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
+  filter:{tipe:"asli",batch:"",status:"submitted",versi:"semua",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
           dari:"",sampai:"",ikutDikecualikan:false},
-  filterAwal(){ return {tipe:"asli",batch:"",status:"submitted",versi:"v2",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
+  filterAwal(){ return {tipe:"asli",batch:"",status:"submitted",versi:"semua",kode:"",D1:"",D2:"",D5:"",D6:"",D7:"",D8:"",D9:"",
           dari:"",sampai:"",ikutDikecualikan:false}; },
   /* true bila tampilan sedang memuat data simulasi */
   modeSintetis(){ return this.filter.tipe==="sintetis" || !!this.filter.batch; },
@@ -4402,9 +4402,9 @@ const Admin = {
       <div class="filters">
         <div><label class="fl" style="font-size:.78rem">Instrumen kuesioner</label>
           <select data-f="versi">
-            <option value="v2" ${f.versi==="v2"?"selected":""}>Instrumen v2 (X1–X19, Y1–Y10) [Utama]</option>
-            <option value="v1" ${f.versi==="v1"?"selected":""}>Instrumen v1 (P1–P29, E1–E3) [Arsip]</option>
-            <option value="semua" ${f.versi==="semua"?"selected":""}>Semua instrumen</option></select></div>
+            <option value="v2" ${f.versi==="v2"?"selected":""}>Instrumen v2 (X1–X19, Y1–Y10)</option>
+            <option value="v1" ${f.versi==="v1"?"selected":""}>Instrumen v1 (P1–P29, E1–E3)</option>
+            <option value="semua" ${f.versi==="semua"?"selected":""}>Semua instrumen (v1 + v2)</option></select></div>
         <div><label class="fl" style="font-size:.78rem">Jenis data</label>
           <select data-f="tipe">
             <option value="asli" ${f.tipe==="asli"?"selected":""}>Original Respondents</option>
@@ -5685,14 +5685,14 @@ Object.assign(Admin,{
 
 
 /* ============================================================
-   MODUL 12b — RANDOMIZE MAJORITY PICKER
+   MODUL 12b — AUTOMATIC MAJORITY DATA INPUT
    Pembangkit responden SINTETIS untuk simulasi/uji coba.
    Tidak pernah menyentuh responden asli: setiap baris diberi
    is_synthetic = true dan synthetic_batch_id, serta hanya dapat
    dihapus melalui kedua penanda tersebut.
    ============================================================ */
 const SQL_MIGRASI_SINTETIS = `-- =========================================================
--- MIGRATION — dukungan data sintetis (Randomize Majority Picker)
+-- MIGRATION — dukungan data sintetis (Automatic Majority Data Input)
 -- Jalankan di Supabase > SQL Editor > Run. Idempoten.
 -- Jangan dijalankan otomatis dari browser.
 -- =========================================================
@@ -5921,7 +5921,7 @@ Object.assign(Admin,{
         <p style="font-size:.9rem;margin:6px 0">Isi <code>SUPABASE_URL</code> pada blok <code>CONFIG</code> agar fitur ini dapat menulis ke database.</p></div>`}
 
       <div class="grid g2">
-        <div class="card"><h3>\ud83c\udfb2 Randomize Majority Picker</h3>
+        <div class="card"><h3>\ud83c\udfb2 Automatic Majority Data Input</h3>
           <p style="font-size:.9rem">Membuat responden sintetis dengan pola jawaban yang diarahkan ke satu pilihan mayoritas. Berguna untuk menguji dashboard, grafik, dan export sebelum data asli masuk.</p>
           <div class="filters">
             <div><label class="fl">Jumlah responden</label>
@@ -6530,9 +6530,12 @@ function bangunSeedSQL(){
   L.push("");
   L.push("-- 1. Skema Kolom & Constraint");
   L.push("alter table if exists public.survey_responses");
-  L.push("  add column if not exists questionnaire_version text default 'v2',");
-  L.push("  add column if not exists instrument_version    text default 'v2';");
-  L.push("update public.survey_responses set questionnaire_version = 'v1', instrument_version = 'v1' where questionnaire_version is null;");
+  L.push("  add column if not exists questionnaire_version text,");
+  L.push("  add column if not exists instrument_version    text;");
+  L.push("-- Label baris lama dari isi jawabannya (bukan default kolom); hanya mengisi yang masih NULL.");
+  L.push("update public.survey_responses r set questionnaire_version = case when exists (select 1 from public.survey_answers a where a.response_id=r.id and a.question_id ~ '^(X|Y)[0-9]+$') then 'v2' else 'v1' end where r.questionnaire_version is null;");
+  L.push("update public.survey_responses set instrument_version = questionnaire_version where instrument_version is null;");
+  L.push("alter table public.survey_responses alter column questionnaire_version set default 'v2', alter column instrument_version set default 'v2';");
   L.push("alter table if exists public.survey_questions");
   L.push("  add column if not exists variable text,");
   L.push("  add column if not exists variable_group text,");
